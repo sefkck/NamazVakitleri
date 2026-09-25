@@ -1,17 +1,34 @@
 import SwiftUI
+import GoogleMobileAds
 
 struct RootView: View {
-    @StateObject private var userStore = UserStore()
+    @State private var showSplash = true
 
     var body: some View {
-        Group {
-            if userStore.isLoggedIn {
-                ContentView()
-            } else {
-                AuthView()
+        ZStack {
+            if !showSplash {
+                MainTabView()
+                    .transition(.opacity)
+            }
+
+            if showSplash {
+                SplashView(isFinished: Binding(
+                    get: { !showSplash },
+                    set: { finished in
+                        guard finished else { return }
+                        withAnimation(.easeOut(duration: 0.25)) {
+                            showSplash = false
+                        }
+                    }
+                ))
+                .transition(.opacity)
             }
         }
-        .environmentObject(userStore)
+        .onAppear {
+            DispatchQueue.global(qos: .utility).async {
+                MobileAds.shared.start(completionHandler: nil)
+            }
+        }
     }
 }
 

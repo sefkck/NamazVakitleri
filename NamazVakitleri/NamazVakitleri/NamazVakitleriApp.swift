@@ -6,9 +6,13 @@
 //
 
 import SwiftUI
+import FirebaseCore
 
 @main
 struct NamazVakitleriApp: App {
+    init () {
+        FirebaseApp.configure()
+    }
     var body: some Scene {
         WindowGroup {
             RootView()

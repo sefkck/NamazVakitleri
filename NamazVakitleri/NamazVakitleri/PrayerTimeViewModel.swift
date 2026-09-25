@@ -1,14 +1,12 @@
 import Foundation
-import CoreLocation
-import Adhan
-import Foundation
 import Combine
 import CoreLocation
 import Adhan
 
 /// Verilen konum ve saat dilimine göre günün namaz vakitlerini
 /// Diyanet yöntemiyle (CalculationMethod.turkey) hesaplar ve
-/// bir sonraki vakte kalan süreyi her saniye günceller.
+/// bir sonraki vakte kalan süreyi her saniye günceller. Günün son
+/// namazı (Yatsı) geçtiğinde yarının İmsak'ına geri sayım yapar.
 final class PrayerTimeViewModel: ObservableObject {
 
     @Published var prayerTimes: PrayerTimes?
@@ -33,20 +31,23 @@ final class PrayerTimeViewModel: ObservableObject {
 
     private func recalculate() {
         guard let coordinate = lastCoordinate else { return }
+        prayerTimes = computeTimes(for: Date(), coordinate: coordinate)
+        tick()
+    }
 
+    private func computeTimes(for date: Date, coordinate: CLLocationCoordinate2D) -> PrayerTimes? {
         let coordinates = Coordinates(latitude: coordinate.latitude, longitude: coordinate.longitude)
 
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = timeZone
-        let components = calendar.dateComponents([.year, .month, .day], from: Date())
+        let components = calendar.dateComponents([.year, .month, .day], from: date)
 
         // Diyanet yöntemine en yakın yaklaşım + Türkiye'de yaygın
         // ikindi hesabı (Şafi/standart, tek gölge boyu).
         var params = CalculationMethod.turkey.params
         params.madhab = .shafi
 
-        prayerTimes = PrayerTimes(coordinates: coordinates, date: components, calculationParameters: params)
-        tick()
+        return PrayerTimes(coordinates: coordinates, date: components, calculationParameters: params)
     }
 
     private func tick() {
@@ -61,17 +62,24 @@ final class PrayerTimeViewModel: ObservableObject {
             return
         }
 
-        guard let next = times.nextPrayer() else {
-            nextPrayerName = "Yatsı sonrası"
-            remainingTimeText = "--:--:--"
-            return
+        if let next = times.nextPrayer() {
+            nextPrayerName = displayName(for: next)
+            let nextTime = times.time(for: next)
+            let diff = max(0, nextTime.timeIntervalSinceNow)
+            remainingTimeText = format(diff)
+        } else {
+            // Bugünün son namazı (Yatsı) geçti - yarının İmsak'ına say
+            if let tomorrow = calendar.date(byAdding: .day, value: 1, to: Date()),
+               let coordinate = lastCoordinate,
+               let tomorrowTimes = computeTimes(for: tomorrow, coordinate: coordinate) {
+                nextPrayerName = "Yarın İmsak"
+                let diff = max(0, tomorrowTimes.fajr.timeIntervalSinceNow)
+                remainingTimeText = format(diff)
+            } else {
+                nextPrayerName = "Yatsı sonrası"
+                remainingTimeText = "--:--:--"
+            }
         }
-
-        nextPrayerName = displayName(for: next)
-
-        let nextTime = times.time(for: next)
-        let diff = max(0, nextTime.timeIntervalSinceNow)
-        remainingTimeText = format(diff)
     }
 
     private func format(_ interval: TimeInterval) -> String {

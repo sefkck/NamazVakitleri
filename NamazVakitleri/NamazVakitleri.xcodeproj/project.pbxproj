@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		7D340985303EA4E800AD4BC7 /* Adhan in Frameworks */ = {isa = PBXBuildFile; productRef = 7D340984303EA4E800AD4BC7 /* Adhan */; };
+		7D3D16FA3048A96E0025EAD7 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 7D3D16F93048A96E0025EAD7 /* FirebaseAuth */; };
+		7D3D16FC3048A96E0025EAD7 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 7D3D16FB3048A96E0025EAD7 /* FirebaseFirestore */; };
+		7D42D78A30461D4D00FC3531 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 7D42D78930461D4D00FC3531 /* GoogleMobileAds */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +43,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7D42D78A30461D4D00FC3531 /* GoogleMobileAds in Frameworks */,
+				7D3D16FC3048A96E0025EAD7 /* FirebaseFirestore in Frameworks */,
+				7D3D16FA3048A96E0025EAD7 /* FirebaseAuth in Frameworks */,
 				7D340985303EA4E800AD4BC7 /* Adhan in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -84,6 +90,9 @@
 			name = NamazVakitleri;
 			packageProductDependencies = (
 				7D340984303EA4E800AD4BC7 /* Adhan */,
+				7D42D78930461D4D00FC3531 /* GoogleMobileAds */,
+				7D3D16F93048A96E0025EAD7 /* FirebaseAuth */,
+				7D3D16FB3048A96E0025EAD7 /* FirebaseFirestore */,
 			);
 			productName = NamazVakitleri;
 			productReference = 7D340975303EA40F00AD4BC7 /* NamazVakitleri.app */;
@@ -115,6 +124,8 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				7D340983303EA4E800AD4BC7 /* XCRemoteSwiftPackageReference "adhan-swift" */,
+				7D42D78830461D4D00FC3531 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+				7D3D16F83048A96E0025EAD7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 7D340976303EA40F00AD4BC7 /* Products */;
@@ -273,10 +284,12 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = X4GM83S2T6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = NamazVakitleri/Info.plist;
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Namaz vakitleri ve saat dilimi için konum bilgisini kullanıyoruz";
+				INFOPLIST_KEY_NSCameraUsageDescription = "profil fotoğrafı çekmek için kamera kullanılıyor.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Namaz vakitlerini, kıble yönünü ve yakındaki camileri bulmak için konumunu kullanıyoruz.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -306,10 +319,12 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = X4GM83S2T6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = NamazVakitleri/Info.plist;
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Namaz vakitleri ve saat dilimi için konum bilgisini kullanıyoruz";
+				INFOPLIST_KEY_NSCameraUsageDescription = "profil fotoğrafı çekmek için kamera kullanılıyor.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Namaz vakitlerini, kıble yönünü ve yakındaki camileri bulmak için konumunu kullanıyoruz.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -364,6 +379,22 @@
 				minimumVersion = 1.5.0;
 			};
 		};
+		7D3D16F83048A96E0025EAD7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.18.0;
+			};
+		};
+		7D42D78830461D4D00FC3531 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 13.9.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -371,6 +402,21 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 7D340983303EA4E800AD4BC7 /* XCRemoteSwiftPackageReference "adhan-swift" */;
 			productName = Adhan;
+		};
+		7D3D16F93048A96E0025EAD7 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7D3D16F83048A96E0025EAD7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		7D3D16FB3048A96E0025EAD7 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7D3D16F83048A96E0025EAD7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		7D42D78930461D4D00FC3531 /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7D42D78830461D4D00FC3531 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

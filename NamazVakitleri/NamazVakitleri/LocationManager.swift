@@ -1,6 +1,4 @@
 import Foundation
-import CoreLocation
-import Foundation
 import Combine
 import CoreLocation
 
@@ -24,12 +22,27 @@ final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelega
         manager.desiredAccuracy = kCLLocationAccuracyKilometer
     }
 
+    @Published var isTakingTooLong = false
+
+    private var timeoutTimer: Timer?
+
     func requestPermission() {
         manager.requestWhenInUseAuthorization()
+        startTimeoutWatch()
     }
 
     func requestLocation() {
         manager.startUpdatingLocation()
+        startTimeoutWatch()
+    }
+
+    private func startTimeoutWatch() {
+        isTakingTooLong = false
+        timeoutTimer?.invalidate()
+        timeoutTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { [weak self] _ in
+            guard let self, self.coordinate == nil else { return }
+            self.isTakingTooLong = true
+        }
     }
 
     // MARK: - CLLocationManagerDelegate
@@ -55,6 +68,8 @@ final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelega
         }
 
         coordinate = location.coordinate
+        isTakingTooLong = false
+        timeoutTimer?.invalidate()
 
         geocoder.reverseGeocodeLocation(location) { [weak self] placemarks, _ in
             guard let self, let placemark = placemarks?.first else { return }

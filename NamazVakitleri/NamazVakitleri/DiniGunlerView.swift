@@ -8,7 +8,7 @@ struct ReligiousDay: Identifiable {
 }
 
 struct DiniGunlerView: View {
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
 
     private var days: [ReligiousDay] {
         let calendar = Calendar(identifier: .gregorian)
@@ -17,8 +17,6 @@ struct DiniGunlerView: View {
             calendar.date(from: DateComponents(year: year, month: month, day: day)) ?? Date()
         }
 
-        // Kaynak: Diyanet İşleri Başkanlığı'nın yayımladığı 2026-2027
-        // dini günler / kandiller takvimi.
         let allDays: [ReligiousDay] = [
             ReligiousDay(name: "Üç Ayların Başlangıcı (Recep)", date: makeDate(2026, 12, 10), note: nil),
             ReligiousDay(name: "Regaip Kandili", date: makeDate(2026, 12, 10), note: "Gece idrak edilir"),
@@ -47,41 +45,74 @@ struct DiniGunlerView: View {
     var body: some View {
         NavigationView {
             List {
+                if let nearest = days.first {
+                    Section {
+                        ZStack(alignment: .bottomLeading) {
+                            LinearGradient(
+                                colors: [AppTheme.accent.opacity(0.35), Color.black],
+                                startPoint: .topTrailing,
+                                endPoint: .bottomLeading
+                            )
+                            .frame(height: 130)
+                            Image(systemName: "moon.stars.fill")
+                                .font(.system(size: 40))
+                                .foregroundStyle(AppTheme.accent.opacity(0.6))
+                                .frame(maxWidth: .infinity, alignment: .trailing)
+                                .padding(.trailing, 24)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(nearest.name)
+                                    .font(AppTheme.title(17))
+                                    .foregroundColor(.white)
+                                Text(formattedDate(nearest.date))
+                                    .font(AppTheme.body(12))
+                                    .foregroundColor(.white.opacity(0.85))
+                                Text(daysRemainingText(nearest.date))
+                                    .font(AppTheme.body(12, weight: .semibold))
+                                    .foregroundColor(AppTheme.gold)
+                            }
+                            .padding(14)
+                        }
+                        .cornerRadius(AppTheme.cardCornerRadius)
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                    }
+                }
+
                 Section {
-                    ForEach(days) { day in
+                    ForEach(days.dropFirst()) { day in
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(day.name)
-                                    .font(.body)
+                                    .font(AppTheme.body(15, weight: .medium))
+                                    .foregroundColor(AppTheme.textPrimary(colorScheme))
                                 if let note = day.note {
                                     Text(note)
                                         .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(AppTheme.textTertiary(colorScheme))
                                 }
                             }
                             Spacer()
                             VStack(alignment: .trailing, spacing: 2) {
                                 Text(formattedDate(day.date))
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
+                                    .font(AppTheme.body(13, weight: .medium))
+                                    .foregroundColor(AppTheme.textPrimary(colorScheme))
                                 Text(daysRemainingText(day.date))
                                     .font(.caption)
-                                    .foregroundStyle(.orange)
+                                    .foregroundStyle(AppTheme.accent)
                             }
                         }
                         .padding(.vertical, 4)
+                        .listRowBackground(Color.clear)
                     }
                 } footer: {
                     Text("Tarihler Diyanet İşleri Başkanlığı'nın yayımladığı dini günler takvimine dayanmaktadır. Ramazan ve Kurban Bayramı gibi hilal gözlemine bağlı başlangıç tarihleri, ilgili ay yaklaştığında resmî olarak kesinleşir ve ±1 gün değişebilir.")
                 }
             }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .background(AppTheme.background(colorScheme).ignoresSafeArea())
             .navigationTitle("Dini Günler")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Kapat") { dismiss() }
-                }
-            }
         }
     }
 

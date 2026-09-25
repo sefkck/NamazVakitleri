@@ -10,10 +10,8 @@ enum ZikirGoalMode: String, CaseIterable, Identifiable {
 }
 
 struct ZikirmatikView: View {
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
 
-    // @AppStorage kullanıldığı için uygulama kapanıp açılsa bile
-    // sayaç, hedef ve tur bilgisi kaybolmaz.
     @AppStorage("zikir_goalMode") private var goalModeRaw: String = ZikirGoalMode.thirtyThree.rawValue
     @AppStorage("zikir_customGoal") private var customGoal: Int = 100
     @AppStorage("zikir_count") private var count: Int = 0
@@ -36,8 +34,7 @@ struct ZikirmatikView: View {
 
     var body: some View {
         NavigationView {
-            VStack(spacing: 28) {
-
+            VStack(spacing: 24) {
                 Picker("Hedef", selection: Binding(
                     get: { goalMode },
                     set: { newMode in
@@ -51,10 +48,12 @@ struct ZikirmatikView: View {
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
+                .padding(.top, 12)
 
                 if goalMode == .custom {
                     HStack {
                         Text("Hedef sayı:")
+                            .foregroundColor(AppTheme.textPrimary(colorScheme))
                         TextField("Örn. 250", text: $customGoalText)
                             .keyboardType(.numberPad)
                             .textFieldStyle(.roundedBorder)
@@ -70,44 +69,62 @@ struct ZikirmatikView: View {
 
                 Spacer()
 
-                VStack(spacing: 8) {
+                VStack(spacing: 6) {
                     if let goal = currentGoal {
                         Text("\(count) / \(goal)")
-                            .font(.system(size: 56, weight: .bold, design: .rounded))
+                            .font(AppTheme.title(46, weight: .bold))
+                            .foregroundColor(AppTheme.textPrimary(colorScheme))
                             .monospacedDigit()
                         Text("Kalan: \(max(goal - count, 0))")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .font(AppTheme.body(14))
+                            .foregroundStyle(AppTheme.textSecondary(colorScheme))
                     } else {
                         Text("\(count)")
-                            .font(.system(size: 56, weight: .bold, design: .rounded))
+                            .font(AppTheme.title(46, weight: .bold))
+                            .foregroundColor(AppTheme.textPrimary(colorScheme))
                             .monospacedDigit()
                         Text("Sınırsız")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .font(AppTheme.body(14))
+                            .foregroundStyle(AppTheme.textSecondary(colorScheme))
                     }
 
                     if completedRounds > 0 {
                         Text("Tamamlanan tur: \(completedRounds)")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
+                            .font(AppTheme.body(12))
+                            .foregroundStyle(AppTheme.textTertiary(colorScheme))
                     }
                 }
+
+                Spacer()
 
                 Button {
                     increment()
                 } label: {
-                    Circle()
-                        .fill(Color.accentColor)
-                        .frame(width: 180, height: 180)
-                        .overlay(
-                            Text("Çek")
-                                .font(.title)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.white)
-                        )
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [AppTheme.accent, AppTheme.accent.opacity(0.8)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 180, height: 180)
+                            .shadow(color: AppTheme.accent.opacity(0.4), radius: 12, y: 6)
+
+                        Text("Çek")
+                            .font(AppTheme.title(28, weight: .bold))
+                            .foregroundColor(.white)
+                    }
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(ZikirButtonStyle())
+                .padding(.vertical, 12)
+
+                Text("Zikir çekmek için düğmeye dokun")
+                    .font(AppTheme.body(12))
+                    .foregroundStyle(AppTheme.textTertiary(colorScheme))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
 
                 Spacer()
 
@@ -121,18 +138,14 @@ struct ZikirmatikView: View {
                 .padding(.horizontal)
             }
             .padding(.bottom, 24)
+            .background(AppTheme.background(colorScheme).ignoresSafeArea())
             .navigationTitle("Zikirmatik")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Kapat") { dismiss() }
-                }
-            }
         }
     }
 
     private func increment() {
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         count += 1
         if let goal = currentGoal, count >= goal {
             completedRounds += 1
@@ -147,7 +160,15 @@ struct ZikirmatikView: View {
     }
 }
 
+/// Basılınca hafifçe küçülen sade buton stili.
+private struct ZikirButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.92 : 1.0)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+    }
+}
+
 #Preview {
     ZikirmatikView()
 }
-
