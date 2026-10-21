@@ -1,0 +1,11 @@
+# Xcode
+xcuserdata/
+DerivedData/
+build/
+*.xcuserstate
+.DS_Store
+# Gizli / kişisel dosyalar
+GoogleService-Info.plist
+*.mobileprovision
+*.p12
+.env

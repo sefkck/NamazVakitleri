@@ -1,6 +1,6 @@
 import Foundation
 
-struct QuranSurahSummary: Codable, Identifiable {
+struct QuranSurahSummary: Codable, Identifiable, Hashable {
     let number: Int
     let name: String
     let englishName: String
@@ -32,17 +32,10 @@ private struct SurahDetailResponse: Codable {
     let data: QuranSurahDetail
 }
 
-private struct EditionInfo: Codable {
-    let identifier: String
-}
-
-private struct EditionLanguageResponse: Codable {
-    let data: [EditionInfo]
-}
-
-/// Sure metnini (Arapça + Latin harfli okunuş + Türkçe meal)
+/// Sure metnini (Arapça + Latin harfli okunuş + seçili dilde meal)
 /// alquran.cloud API'sinden çeker, tekrar indirmemek için diske
-/// önbelleğe alır. İlk açılışta internet gerektirir, sonra offline çalışır.
+/// önbelleğe alır. Sure listesi de önbelleğe alınır; bir kez açılan
+/// sureler ve liste internetsiz de çalışır.
 final class QuranAPI {
     static let shared = QuranAPI()
     private init() {}
@@ -53,8 +46,45 @@ final class QuranAPI {
         let meal: [QuranAyah]
     }
 
+    enum APIError: Error {
+        case badResponse
+    }
+
     private let baseURL = "https://api.alquran.cloud/v1"
-    private var cachedTurkishEdition: String?
+
+    /// Meal baskısı sabit: rastgele bir baskıya ya da başka bir dile
+    /// düşmüyoruz. Arapça arayüzde ayrıca meal gösterilmez.
+    static func mealEdition(for language: AppLanguage) -> String? {
+        switch language {
+        // tr.diyanet kaynağı birkaç ayeti tek cümlede birleştirip aynı meali
+        // ardışık ayetlerde tekrarlıyor (tüm Kur'an'da 841 ayet). Diyanet
+        // Vakfı meali ayet ayet çevrilmiş (sadece 10 tekrar).
+        case .turkish: return "tr.vakfi"
+        case .english: return "en.sahih"
+        case .german: return "de.bubenheim"
+        case .arabic: return nil
+        }
+    }
+
+    /// Okunuş (Latin harfli) baskısı: Türkçede Türkçe yazım ("yâ-sîn"),
+    /// diğer dillerde İngilizce yazım ("Yaa-Seeen").
+    /// Akademik okunuşu (ḥ, ṣ, ḳ, `, kelime içi tireler) cemaatin okuduğu sade
+    /// yazıma çevirir: "Bismi-llâhi-rraḥmâni-rraḥîm" → "Bismillâhirrahmânirrahîm".
+    /// Uzatma işaretleri (â, î, û) korunur.
+    static func simpleTransliteration(_ text: String) -> String {
+        let map: [String: String] = [
+            "ḥ": "h", "Ḥ": "H", "ḫ": "h", "Ḫ": "H", "ṣ": "s", "Ṣ": "S", "ḍ": "d", "Ḍ": "D",
+            "ṭ": "t", "Ṭ": "T", "ẓ": "z", "Ẓ": "Z", "ḳ": "k", "Ḳ": "K", "ġ": "ğ", "Ġ": "Ğ",
+            "ẕ": "z", "ẖ": "h", "s̱": "s", "ẟ": "z", "`": "", "'": "", "’": "", "ʿ": "", "ʾ": "", "-": ""
+        ]
+        var out = text
+        for (k, v) in map { out = out.replacingOccurrences(of: k, with: v) }
+        return out
+    }
+
+    static func transliterationEdition(for language: AppLanguage) -> String {
+        language == .turkish ? "tr.transliteration" : "en.transliteration"
+    }
 
     private var cacheDirectory: URL {
         let dir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
@@ -64,47 +94,70 @@ final class QuranAPI {
     }
 
     func fetchSurahList() async throws -> [QuranSurahSummary] {
-        let url = URL(string: "\(baseURL)/surah")!
-        let (data, _) = try await URLSession.shared.data(from: url)
-        return try JSONDecoder().decode(SurahListResponse.self, from: data).data
+        let fileURL = cacheDirectory.appendingPathComponent("surah_list.json")
+        if let data = try? Data(contentsOf: fileURL),
+           let cached = try? JSONDecoder().decode([QuranSurahSummary].self, from: data),
+           cached.count == 114 {
+            return cached
+        }
+        let data = try await download("\(baseURL)/surah")
+        let list = try JSONDecoder().decode(SurahListResponse.self, from: data).data
+        if list.count == 114, let encoded = try? JSONEncoder().encode(list) {
+            try? encoded.write(to: fileURL)
+        }
+        return list
     }
 
-    func fetchSurahContent(number: Int) async throws -> SurahContent {
-        if let cached = loadFromCache(number: number) {
+    func fetchSurahContent(number: Int, language: AppLanguage) async throws -> SurahContent {
+        let mealEdition = Self.mealEdition(for: language)
+        let translitEdition = Self.transliterationEdition(for: language)
+        if let cached = loadFromCache(number: number, mealEdition: mealEdition, translitEdition: translitEdition) {
             return cached
         }
 
         async let arabicTask = fetchEdition(surah: number, edition: "quran-uthmani")
-        async let transliterationTask = fetchEdition(surah: number, edition: "en.transliteration")
-        let turkishEdition = try await resolveTurkishEdition()
-        async let mealTask = fetchEdition(surah: number, edition: turkishEdition)
+        async let transliterationTask = fetchEdition(surah: number, edition: translitEdition)
+        let meal: [QuranAyah]
+        if let mealEdition {
+            meal = try await fetchEdition(surah: number, edition: mealEdition)
+        } else {
+            meal = []
+        }
 
         let content = try await SurahContent(
-            arabic: arabicTask,
+            arabic: Self.removingLeadingBasmala(arabicTask, surah: number),
             transliteration: transliterationTask,
-            meal: mealTask
+            meal: meal
         )
-        saveToCache(number: number, content: content)
+        saveToCache(number: number, mealEdition: mealEdition, translitEdition: translitEdition, content: content)
         return content
     }
 
     private func fetchEdition(surah: Int, edition: String) async throws -> [QuranAyah] {
-        let url = URL(string: "\(baseURL)/surah/\(surah)/\(edition)")!
-        let (data, _) = try await URLSession.shared.data(from: url)
+        let data = try await download("\(baseURL)/surah/\(surah)/\(edition)")
         return try JSONDecoder().decode(SurahDetailResponse.self, from: data).data.ayahs
     }
 
-    /// Diyanet mealini bulmaya çalışır, yoksa mevcut ilk Türkçe meali kullanır.
-    private func resolveTurkishEdition() async throws -> String {
-        if let cachedTurkishEdition { return cachedTurkishEdition }
-        let url = URL(string: "\(baseURL)/edition/language/tr")!
-        let (data, _) = try await URLSession.shared.data(from: url)
-        let decoded = try? JSONDecoder().decode(EditionLanguageResponse.self, from: data)
-        let identifier = decoded?.data.first(where: { $0.identifier.contains("diyanet") })?.identifier
-            ?? decoded?.data.first?.identifier
-            ?? "en.sahih"
-        cachedTurkishEdition = identifier
-        return identifier
+    static let basmala = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ"
+
+    /// Kaynak, Fâtiha ve Tevbe dışındaki her surenin 1. ayetinin başına
+    /// Besmele'yi ekliyor. Ekranda sure başlığında Besmele zaten
+    /// gösterildiği için ayetteki tekrarı kaldırıyoruz.
+    static func removingLeadingBasmala(_ ayahs: [QuranAyah], surah: Int) -> [QuranAyah] {
+        guard surah != 1, surah != 9, let first = ayahs.first else { return ayahs }
+        let text = first.text.replacingOccurrences(of: "\u{FEFF}", with: "")
+        guard text.hasPrefix(basmala) else { return ayahs }
+        let rest = String(text.dropFirst(basmala.count)).trimmingCharacters(in: .whitespaces)
+        guard !rest.isEmpty else { return ayahs }
+        return [QuranAyah(number: first.number, text: rest, numberInSurah: first.numberInSurah)] + ayahs.dropFirst()
+    }
+
+    /// Sadece HTTP 200 yanıtlarını kabul eder; hata sayfası önbelleğe girmez.
+    private func download(_ urlString: String) async throws -> Data {
+        guard let url = URL(string: urlString) else { throw APIError.badResponse }
+        let (data, response) = try await URLSession.shared.data(from: url)
+        guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw APIError.badResponse }
+        return data
     }
 
     // MARK: - Disk önbelleği
@@ -115,19 +168,21 @@ final class QuranAPI {
         let meal: [QuranAyah]
     }
 
-    private func cacheFileURL(number: Int) -> URL {
-        cacheDirectory.appendingPathComponent("surah_\(number).json")
+    /// Dosya adında meal baskısı var: dil değişince ya da baskı
+    /// değişince eski (yanlış dildeki) önbellek kullanılmaz.
+    private func cacheFileURL(number: Int, mealEdition: String?, translitEdition: String) -> URL {
+        cacheDirectory.appendingPathComponent("surah_\(number)_\(mealEdition ?? "none")_\(translitEdition).json")
     }
 
-    private func saveToCache(number: Int, content: SurahContent) {
+    private func saveToCache(number: Int, mealEdition: String?, translitEdition: String, content: SurahContent) {
         let cached = CachedSurah(arabic: content.arabic, transliteration: content.transliteration, meal: content.meal)
         if let data = try? JSONEncoder().encode(cached) {
-            try? data.write(to: cacheFileURL(number: number))
+            try? data.write(to: cacheFileURL(number: number, mealEdition: mealEdition, translitEdition: translitEdition))
         }
     }
 
-    private func loadFromCache(number: Int) -> SurahContent? {
-        guard let data = try? Data(contentsOf: cacheFileURL(number: number)),
+    private func loadFromCache(number: Int, mealEdition: String?, translitEdition: String) -> SurahContent? {
+        guard let data = try? Data(contentsOf: cacheFileURL(number: number, mealEdition: mealEdition, translitEdition: translitEdition)),
               let cached = try? JSONDecoder().decode(CachedSurah.self, from: data) else { return nil }
         return SurahContent(arabic: cached.arabic, transliteration: cached.transliteration, meal: cached.meal)
     }

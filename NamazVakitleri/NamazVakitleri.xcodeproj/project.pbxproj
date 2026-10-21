@@ -8,13 +8,42 @@
 
 /* Begin PBXBuildFile section */
 		7D340985303EA4E800AD4BC7 /* Adhan in Frameworks */ = {isa = PBXBuildFile; productRef = 7D340984303EA4E800AD4BC7 /* Adhan */; };
-		7D3D16FA3048A96E0025EAD7 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 7D3D16F93048A96E0025EAD7 /* FirebaseAuth */; };
-		7D3D16FC3048A96E0025EAD7 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 7D3D16FB3048A96E0025EAD7 /* FirebaseFirestore */; };
 		7D42D78A30461D4D00FC3531 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 7D42D78930461D4D00FC3531 /* GoogleMobileAds */; };
+		7DD49EA93071B3570070EB0C /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DD49EA83071B3560070EB0C /* WidgetKit.framework */; };
+		7DD49EAB3071B3570070EB0C /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DD49EAA3071B3570070EB0C /* SwiftUI.framework */; };
+		7DD49EB83071B3570070EB0C /* SafaWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7DD49EA63071B3560070EB0C /* SafaWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		7DD49EB63071B3570070EB0C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7D34096D303EA40F00AD4BC7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7DD49EA53071B3560070EB0C;
+			remoteInfo = SafaWidgetsExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		7DD49EB93071B3570070EB0C /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				7DD49EB83071B3570070EB0C /* SafaWidgetsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		7D340975303EA40F00AD4BC7 /* NamazVakitleri.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NamazVakitleri.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7D5C18713072DE11000E8CA4 /* SafaWidgetsExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SafaWidgetsExtension.entitlements; sourceTree = "<group>"; };
+		7DD49EA63071B3560070EB0C /* SafaWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SafaWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		7DD49EA83071B3560070EB0C /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		7DD49EAA3071B3570070EB0C /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -25,6 +54,25 @@
 			);
 			target = 7D340974303EA40F00AD4BC7 /* NamazVakitleri */;
 		};
+		7DD49EBD3071B3570070EB0C /* Exceptions for "SafaWidgets" folder in "SafaWidgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 7DD49EA53071B3560070EB0C /* SafaWidgetsExtension */;
+		};
+		7DD49EBF3071B3BD0070EB0C /* Exceptions for "NamazVakitleri" folder in "SafaWidgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				AppTheme.swift,
+				Ayahpool.swift,
+				DisplayFormat.swift,
+				Localization.swift,
+				LockScreenWidgetViews.swift,
+				Prayerwidgetdata.swift,
+			);
+			target = 7DD49EA53071B3560070EB0C /* SafaWidgetsExtension */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -32,8 +80,17 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				7D0DA98E3042BAED00DC4535 /* Exceptions for "NamazVakitleri" folder in "NamazVakitleri" target */,
+				7DD49EBF3071B3BD0070EB0C /* Exceptions for "NamazVakitleri" folder in "SafaWidgetsExtension" target */,
 			);
 			path = NamazVakitleri;
+			sourceTree = "<group>";
+		};
+		7DD49EAC3071B3570070EB0C /* SafaWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				7DD49EBD3071B3570070EB0C /* Exceptions for "SafaWidgets" folder in "SafaWidgetsExtension" target */,
+			);
+			path = SafaWidgets;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -44,9 +101,16 @@
 			buildActionMask = 2147483647;
 			files = (
 				7D42D78A30461D4D00FC3531 /* GoogleMobileAds in Frameworks */,
-				7D3D16FC3048A96E0025EAD7 /* FirebaseFirestore in Frameworks */,
-				7D3D16FA3048A96E0025EAD7 /* FirebaseAuth in Frameworks */,
 				7D340985303EA4E800AD4BC7 /* Adhan in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7DD49EA33071B3560070EB0C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7DD49EAB3071B3570070EB0C /* SwiftUI.framework in Frameworks */,
+				7DD49EA93071B3570070EB0C /* WidgetKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -56,7 +120,10 @@
 		7D34096C303EA40F00AD4BC7 = {
 			isa = PBXGroup;
 			children = (
+				7D5C18713072DE11000E8CA4 /* SafaWidgetsExtension.entitlements */,
 				7D340977303EA40F00AD4BC7 /* NamazVakitleri */,
+				7DD49EAC3071B3570070EB0C /* SafaWidgets */,
+				7DD49EA73071B3560070EB0C /* Frameworks */,
 				7D340976303EA40F00AD4BC7 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -65,8 +132,18 @@
 			isa = PBXGroup;
 			children = (
 				7D340975303EA40F00AD4BC7 /* NamazVakitleri.app */,
+				7DD49EA63071B3560070EB0C /* SafaWidgetsExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		7DD49EA73071B3560070EB0C /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				7DD49EA83071B3560070EB0C /* WidgetKit.framework */,
+				7DD49EAA3071B3570070EB0C /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -79,10 +156,12 @@
 				7D340971303EA40F00AD4BC7 /* Sources */,
 				7D340972303EA40F00AD4BC7 /* Frameworks */,
 				7D340973303EA40F00AD4BC7 /* Resources */,
+				7DD49EB93071B3570070EB0C /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				7DD49EB73071B3570070EB0C /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				7D340977303EA40F00AD4BC7 /* NamazVakitleri */,
@@ -91,12 +170,32 @@
 			packageProductDependencies = (
 				7D340984303EA4E800AD4BC7 /* Adhan */,
 				7D42D78930461D4D00FC3531 /* GoogleMobileAds */,
-				7D3D16F93048A96E0025EAD7 /* FirebaseAuth */,
-				7D3D16FB3048A96E0025EAD7 /* FirebaseFirestore */,
 			);
 			productName = NamazVakitleri;
 			productReference = 7D340975303EA40F00AD4BC7 /* NamazVakitleri.app */;
 			productType = "com.apple.product-type.application";
+		};
+		7DD49EA53071B3560070EB0C /* SafaWidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7DD49EBC3071B3570070EB0C /* Build configuration list for PBXNativeTarget "SafaWidgetsExtension" */;
+			buildPhases = (
+				7DD49EA23071B3560070EB0C /* Sources */,
+				7DD49EA33071B3560070EB0C /* Frameworks */,
+				7DD49EA43071B3560070EB0C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				7DD49EAC3071B3570070EB0C /* SafaWidgets */,
+			);
+			name = SafaWidgetsExtension;
+			packageProductDependencies = (
+			);
+			productName = SafaWidgetsExtension;
+			productReference = 7DD49EA63071B3560070EB0C /* SafaWidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -111,6 +210,9 @@
 					7D340974303EA40F00AD4BC7 = {
 						CreatedOnToolsVersion = 26.6;
 					};
+					7DD49EA53071B3560070EB0C = {
+						CreatedOnToolsVersion = 26.6;
+					};
 				};
 			};
 			buildConfigurationList = 7D340970303EA40F00AD4BC7 /* Build configuration list for PBXProject "NamazVakitleri" */;
@@ -119,13 +221,15 @@
 			knownRegions = (
 				en,
 				Base,
+				tr,
+				ar,
+				de,
 			);
 			mainGroup = 7D34096C303EA40F00AD4BC7;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				7D340983303EA4E800AD4BC7 /* XCRemoteSwiftPackageReference "adhan-swift" */,
 				7D42D78830461D4D00FC3531 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
-				7D3D16F83048A96E0025EAD7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 7D340976303EA40F00AD4BC7 /* Products */;
@@ -133,12 +237,20 @@
 			projectRoot = "";
 			targets = (
 				7D340974303EA40F00AD4BC7 /* NamazVakitleri */,
+				7DD49EA53071B3560070EB0C /* SafaWidgetsExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		7D340973303EA40F00AD4BC7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7DD49EA43071B3560070EB0C /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -155,7 +267,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		7DD49EA23071B3560070EB0C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		7DD49EB73071B3570070EB0C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7DD49EA53071B3560070EB0C /* SafaWidgetsExtension */;
+			targetProxy = 7DD49EB63071B3570070EB0C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		7D34097E303EA41000AD4BC7 /* Debug */ = {
@@ -282,13 +409,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = NamazVakitleri/NamazVakitleri.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = X4GM83S2T6;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = NamazVakitleri/Info.plist;
-				INFOPLIST_KEY_NSCameraUsageDescription = "profil fotoğrafı çekmek için kamera kullanılıyor.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Namaz vakitlerini, kıble yönünü ve yakındaki camileri bulmak için konumunu kullanıyoruz.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -317,13 +444,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = NamazVakitleri/NamazVakitleri.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = X4GM83S2T6;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = NamazVakitleri/Info.plist;
-				INFOPLIST_KEY_NSCameraUsageDescription = "profil fotoğrafı çekmek için kamera kullanılıyor.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Namaz vakitlerini, kıble yönünü ve yakındaki camileri bulmak için konumunu kullanıyoruz.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -340,6 +467,68 @@
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		7DD49EBA3071B3570070EB0C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = SafaWidgetsExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SafaWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SafaWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kocaksefa.NamazVakitleri.SafaWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		7DD49EBB3071B3570070EB0C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = SafaWidgetsExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SafaWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SafaWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kocaksefa.NamazVakitleri.SafaWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
@@ -368,6 +557,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		7DD49EBC3071B3570070EB0C /* Build configuration list for PBXNativeTarget "SafaWidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7DD49EBA3071B3570070EB0C /* Debug */,
+				7DD49EBB3071B3570070EB0C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
@@ -377,14 +575,6 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 1.5.0;
-			};
-		};
-		7D3D16F83048A96E0025EAD7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 12.18.0;
 			};
 		};
 		7D42D78830461D4D00FC3531 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
@@ -402,16 +592,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 7D340983303EA4E800AD4BC7 /* XCRemoteSwiftPackageReference "adhan-swift" */;
 			productName = Adhan;
-		};
-		7D3D16F93048A96E0025EAD7 /* FirebaseAuth */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 7D3D16F83048A96E0025EAD7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAuth;
-		};
-		7D3D16FB3048A96E0025EAD7 /* FirebaseFirestore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 7D3D16F83048A96E0025EAD7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseFirestore;
 		};
 		7D42D78930461D4D00FC3531 /* GoogleMobileAds */ = {
 			isa = XCSwiftPackageProductDependency;

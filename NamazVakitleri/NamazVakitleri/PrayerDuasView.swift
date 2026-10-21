@@ -6,13 +6,20 @@ struct PrayerDua: Identifiable {
     let arabic: String
     let okunus: String
     let meal: String
+    /// Kur'an ayeti olan dualar için ayetlerin genel numaraları (1...6236):
+    /// bunlar hafız sesiyle okunur. Boşsa (ayet değilse) ses düğmesi gösterilmez.
+    var quranAyahs: [Int] = []
 }
 
 struct PrayerDuasView: View {
+    @ObservedObject private var loc = LocalizationManager.shared
     @Environment(\.colorScheme) private var colorScheme
-    @StateObject private var speechReader = SpeechReader()
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var recitation = RecitationPlayer()
+    /// Şu an okunan dua (simgeyi "durdur"a çevirmek için).
+    @State private var playingDuaID: UUID?
 
-    private let duas: [PrayerDua] = [
+    let duas: [PrayerDua] = [
         PrayerDua(title: "Sübhaneke",
                   arabic: "سُبْحَانَكَ اللّٰهُمَّ وَبِحَمْدِكَ، وَتَبَارَكَ اسْمُكَ، وَتَعَالٰى جَدُّكَ، وَلَا إِلٰهَ غَيْرُكَ",
                   okunus: "Sübhânekellâhümme ve bihamdik, ve tebârakesmük, ve teâlâ ceddük, ve lâ ilâhe ğayruk.",
@@ -32,11 +39,13 @@ struct PrayerDuasView: View {
         PrayerDua(title: "Rabbena Atina",
                   arabic: "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ",
                   okunus: "Rabbenâ âtinâ fid dünyâ haseneten ve fil âhirati haseneten ve kınâ azâben nâr.",
-                  meal: "Rabbimiz, bize dünyada iyilik, ahirette de iyilik ver ve bizi ateşin azabından koru."),
+                  meal: "Rabbimiz, bize dünyada iyilik, ahirette de iyilik ver ve bizi ateşin azabından koru.",
+                  quranAyahs: [208]),
         PrayerDua(title: "Rabbenağfirli",
                   arabic: "رَبِّ اغْفِرْ لِي وَلِوَالِدَيَّ وَلِلْمُؤْمِنِينَ يَوْمَ يَقُومُ الْحِسَابُ",
                   okunus: "Rabbiğfirlî ve li vâlideyye ve lil mü'minîne yevme yekûmül hisâb.",
-                  meal: "Rabbim, hesabın görüleceği gün beni, anne babamı ve mü'minleri bağışla."),
+                  meal: "Rabbim, hesabın görüleceği gün beni, anne babamı ve mü'minleri bağışla.",
+                  quranAyahs: [1791]),
         PrayerDua(title: "Kunut Duası 1",
                   arabic: "اَللّٰهُمَّ إِنَّا نَسْتَعِينُكَ وَنَسْتَغْفِرُكَ وَنُؤْمِنُ بِكَ وَنَتَوَكَّلُ عَلَيْكَ",
                   okunus: "Allâhümme innâ nesteînüke ve nestağfiruke ve nü'minü bike ve netevekkelü aleyk.",
@@ -48,35 +57,52 @@ struct PrayerDuasView: View {
         PrayerDua(title: "Ayete'l Kürsi",
                   arabic: "اللّٰهُ لَا إِلٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ",
                   okunus: "Allâhü lâ ilâhe illâ hüvel hayyül kayyûm, lâ te'huzühû sinetün ve lâ nevm.",
-                  meal: "Allah, kendisinden başka ilah olmayandır. O, diridir, her şeyin varlığı O'na dayanır. O'nu ne bir uyuklama tutabilir ne de bir uyku."),
+                  meal: "Allah, kendisinden başka ilah olmayandır. O, diridir, her şeyin varlığı O'na dayanır. O'nu ne bir uyuklama tutabilir ne de bir uyku.",
+                  quranAyahs: [262]),
         PrayerDua(title: "Rabbişrahli",
                   arabic: "رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي",
                   okunus: "Rabbişrahlî sadrî ve yessirlî emrî.",
-                  meal: "Rabbim, göğsümü genişlet ve işimi bana kolaylaştır."),
+                  meal: "Rabbim, göğsümü genişlet ve işimi bana kolaylaştır.",
+                  quranAyahs: [2373, 2374]),
         PrayerDua(title: "Amenerrasulü (Bakara 285-286)",
                   arabic: "آمَنَ الرَّسُولُ بِمَا أُنْزِلَ إِلَيْهِ مِنْ رَبِّهِ وَالْمُؤْمِنُونَ",
                   okunus: "Âmener rasûlü bimâ ünzile ileyhi mir rabbihî vel mü'minûn.",
-                  meal: "Peygamber, Rabbinden kendisine indirilene iman etti, mü'minler de iman ettiler.")
+                  meal: "Peygamber, Rabbinden kendisine indirilene iman etti, mü'minler de iman ettiler.",
+                  quranAyahs: [292, 293])
     ]
+
+    /// Hafız sesiyle oku / durdur (sadece Kur'an ayeti olan dualar).
+    private func toggle(_ dua: PrayerDua, isPlaying: Bool) {
+        recitation.stop()
+        guard !isPlaying, !dua.quranAyahs.isEmpty else { playingDuaID = nil; return }
+        playingDuaID = dua.id
+        recitation.play(globalNumbers: dua.quranAyahs)
+    }
+
+    private func duaNumber(_ dua: PrayerDua) -> Int {
+        (duas.firstIndex(where: { $0.id == dua.id }) ?? 0) + 1
+    }
 
     var body: some View {
         NavigationView {
             List(duas) { dua in
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
-                        Text(dua.title)
+                        Text(loc.t("dua\(duaNumber(dua))_title", fallback: dua.title))
                             .font(AppTheme.body(15, weight: .semibold))
                             .foregroundColor(AppTheme.accent)
                         Spacer()
-                        Button {
-                            if speechReader.isSpeaking {
-                                speechReader.stop()
-                            } else {
-                                speechReader.speak(dua.arabic)
+                        // Ses düğmesi sadece hafız kaydı olan (Kur'an ayeti) dualarda var.
+                        if !dua.quranAyahs.isEmpty {
+                            let isPlayingThis = playingDuaID == dua.id && recitation.currentIndex != nil
+                            Button {
+                                toggle(dua, isPlaying: isPlayingThis)
+                            } label: {
+                                Image(systemName: isPlayingThis ? "stop.circle.fill" : "play.circle.fill")
+                                    .font(.title3)
+                                    .foregroundColor(AppTheme.accent)
                             }
-                        } label: {
-                            Image(systemName: "speaker.wave.2.fill")
-                                .foregroundColor(AppTheme.accent)
+                            .accessibilityLabel(isPlayingThis ? loc.t("quran_stop", fallback: "Durdur") : loc.t("quran_listen", fallback: "Sesli Oku"))
                         }
                     }
                     Text(dua.arabic)
@@ -84,11 +110,11 @@ struct PrayerDuasView: View {
                         .multilineTextAlignment(.trailing)
                         .environment(\.layoutDirection, .rightToLeft)
                         .foregroundColor(AppTheme.textPrimary(colorScheme))
-                    Text(dua.okunus)
+                    Text(loc.t("dua\(duaNumber(dua))_trans", fallback: dua.okunus))
                         .font(.footnote)
                         .italic()
                         .foregroundStyle(AppTheme.textSecondary(colorScheme))
-                    Text(dua.meal)
+                    Text(loc.t("dua\(duaNumber(dua))_meal", fallback: dua.meal))
                         .font(.subheadline)
                         .foregroundStyle(AppTheme.textSecondary(colorScheme))
                 }
@@ -98,8 +124,18 @@ struct PrayerDuasView: View {
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
             .background(AppTheme.background(colorScheme).ignoresSafeArea())
-            .navigationTitle("Namaz Duaları")
+            .onDisappear { recitation.stop() }
+            .navigationTitle(loc.t("more_duas", fallback: "Namaz Duaları"))
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button { dismiss() } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
+                    }
+                    .accessibilityLabel(loc.t("common_close", fallback: "Kapat"))
+                }
+            }
         }
     }
 }

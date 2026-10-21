@@ -1,0 +1,15 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "NSLocationWhenInUseUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "نستخدم موقعك لحساب مواقيت الصلاة واتجاه القبلة والعثور على المساجد القريبة." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wir verwenden deinen Standort, um Gebetszeiten, die Qibla-Richtung und Moscheen in der Nähe zu finden." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "We use your location to calculate prayer times, the Qibla direction and nearby mosques." } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Namaz vakitlerini, kıble yönünü ve yakındaki camileri bulmak için konumunu kullanıyoruz." } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

@@ -6,16 +6,32 @@
 //
 
 import SwiftUI
-import FirebaseCore
 
 @main
 struct NamazVakitleriApp: App {
+    @Environment(\.scenePhase) private var scenePhase
+
     init () {
-        FirebaseApp.configure()
+        // Bildirim delegesi uygulama açılışı bitmeden atanmalı; yoksa
+        // kapalı uygulamayı açan bildirim dokunuşu kaybolabilir.
+        NotificationManager.shared.prepare()
+        // Arka plan görevi de açılış bitmeden kaydedilmeli (Apple kuralı).
+        BackgroundRefresh.register()
+        #if DEBUG
+        if CommandLine.arguments.contains("-selfTest") {
+            SelfTests.runAndExit()
+        }
+        DebugSnapshot.scheduleIfRequested()
+        #endif
     }
     var body: some Scene {
         WindowGroup {
             RootView()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .background {
+                BackgroundRefresh.schedule()
+            }
         }
     }
 }

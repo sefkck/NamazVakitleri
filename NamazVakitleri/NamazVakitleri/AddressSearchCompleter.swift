@@ -30,13 +30,25 @@ final class AddressSearchCompleter: NSObject, ObservableObject, MKLocalSearchCom
         results = []
     }
 
-    func resolveCoordinate(for completion: MKLocalSearchCompletion, onResult: @escaping (CLLocationCoordinate2D?, String) -> Void) {
+    func resolveCoordinate(for completion: MKLocalSearchCompletion, onResult: @escaping (CLLocationCoordinate2D?, String, TimeZone?) -> Void) {
         let request = MKLocalSearch.Request(completion: completion)
         let search = MKLocalSearch(request: request)
         search.start { response, _ in
-            let coordinate = response?.mapItems.first?.placemark.coordinate
-            let name = [completion.title, completion.subtitle].filter { !$0.isEmpty }.joined(separator: ", ")
-            onResult(coordinate, name.isEmpty ? completion.title : name)
+            guard let item = response?.mapItems.first else {
+                onResult(nil, completion.title, nil)
+                return
+            }
+            let coordinate = item.location.coordinate
+            // Yurt dışından bir adres seçilirse vakitler o yerin saatiyle gösterilmeli.
+            let itemTimeZone = item.timeZone
+
+            // Gizlilik için tam adres yerine sadece ilçe + il gösterilir.
+            let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+            CLGeocoder().reverseGeocodeLocation(location) { placemarks, _ in
+                let placemark = placemarks?.first
+                let name = placemark.flatMap(PlaceName.format) ?? completion.title
+                onResult(coordinate, name, placemark?.timeZone ?? itemTimeZone)
+            }
         }
     }
 }

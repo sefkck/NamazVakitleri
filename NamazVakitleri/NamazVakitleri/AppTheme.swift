@@ -1,17 +1,21 @@
 import SwiftUI
 
-/// Uygulama teması. Zorlama yok - telefonun Ayarlar > Görünüm
-/// tercihine (Açık/Koyu/Sistem) otomatik uyar, çünkü hiçbir yerde
-/// .preferredColorScheme() ile üzerine yazılmıyor.
+/// Uygulama teması. Kullanıcı Ayarlar ekranından Aydınlık/Karanlık
+/// arasında manuel seçim yapar (RootView bunu .preferredColorScheme
+/// ile tüm uygulamaya uygular, sistem ayarını takip etmez).
 enum AppTheme {
+    /// Karanlık temada yazı ve ikonlar için kullanılan, saf beyaz yerine
+    /// hafif sıcak "süt beyazı" ton.
+    static let milkWhite = Color(red: 0.97, green: 0.96, blue: 0.93)
+
     static func background(_ scheme: ColorScheme) -> Color {
         scheme == .dark
             ? Color(red: 0.06, green: 0.06, blue: 0.07)
-            : Color(red: 0.97, green: 0.95, blue: 0.92)
+            : Color(red: 0.98, green: 0.965, blue: 0.945)
     }
 
     static func cardFill(_ scheme: ColorScheme) -> Color {
-        scheme == .dark ? Color.white.opacity(0.08) : Color.white.opacity(0.8)
+        scheme == .dark ? Color.white.opacity(0.08) : Color.white.opacity(0.85)
     }
 
     static func cardStroke(_ scheme: ColorScheme) -> Color {
@@ -26,25 +30,34 @@ enum AppTheme {
     }
 
     static func textPrimary(_ scheme: ColorScheme) -> Color {
-        scheme == .dark ? .white : Color(red: 0.20, green: 0.14, blue: 0.15)
+        scheme == .dark ? milkWhite : Color(red: 0.20, green: 0.14, blue: 0.15)
     }
 
     static func textSecondary(_ scheme: ColorScheme) -> Color {
-        scheme == .dark ? Color.white.opacity(0.65) : Color(red: 0.45, green: 0.36, blue: 0.37)
+        scheme == .dark ? milkWhite.opacity(0.68) : Color(red: 0.45, green: 0.36, blue: 0.37)
     }
 
     static func textTertiary(_ scheme: ColorScheme) -> Color {
-        scheme == .dark ? Color.white.opacity(0.45) : Color(red: 0.62, green: 0.54, blue: 0.54)
+        scheme == .dark ? milkWhite.opacity(0.48) : Color(red: 0.62, green: 0.54, blue: 0.54)
     }
 
     // MARK: - Tipografi
 
     static func title(_ size: CGFloat, weight: Font.Weight = .semibold) -> Font {
-        .system(size: size, weight: weight, design: .rounded)
+        .system(size: scaled(size), weight: weight, design: .rounded)
     }
 
     static func body(_ size: CGFloat = 15, weight: Font.Weight = .regular) -> Font {
-        .system(size: size, weight: weight, design: .rounded)
+        .system(size: scaled(size), weight: weight, design: .rounded)
+    }
+
+    /// iPhone Ayarlar > Ekran > Metin Boyutu'na göre yazıyı büyütür/küçültür.
+    /// Büyük yazılar (saat, sayaç) ekrana sığsın diye en fazla 1,25 kat,
+    /// normal yazılar en fazla 1,6 kat büyür.
+    static func scaled(_ size: CGFloat) -> CGFloat {
+        let value = UIFontMetrics(forTextStyle: .body).scaledValue(for: size)
+        let maxFactor: CGFloat = size >= 28 ? 1.25 : 1.6
+        return min(value, size * maxFactor)
     }
 
     // MARK: - Ölçüler

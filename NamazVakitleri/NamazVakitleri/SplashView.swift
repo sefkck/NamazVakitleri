@@ -1,10 +1,15 @@
 import SwiftUI
 
-/// Uygulama açılışında ~3.5 saniye gösterilen sade giriş ekranı.
-/// "Namaz" yukarıdan, "Vakitleri" aşağıdan gelip ortada birleşir,
-/// kısa bir süre durur, sonra yumuşakça açılıp ana menüyü gösterir.
+/// Uygulama açılışında ~2.5 saniye gösterilen giriş ekranı.
+/// "Sefa" yukarıdan, "Kur'an, Namaz, Kıble" aşağıdan gelip ortada
+/// birleşir, kısa bir süre durur, sonra yumuşakça açılıp ana menüyü
+/// gösterir. "Kiano" adında bir sistem fontu iOS'ta bulunmuyor; en
+/// yakın duran zarif imza tarzı sistem fontu olan Snell Roundhand
+/// kullanıldı. Gerçek "Kiano" font dosyası (.ttf/.otf) eklenirse
+/// buradaki .custom() çağrıları onun adıyla değiştirilebilir.
 struct SplashView: View {
     @Environment(\.colorScheme) private var colorScheme
+    @ObservedObject private var loc = LocalizationManager.shared
     @Binding var isFinished: Bool
 
     @State private var topOffset: CGFloat = -260
@@ -20,21 +25,34 @@ struct SplashView: View {
             AppTheme.background(colorScheme).ignoresSafeArea()
 
             VStack(spacing: 10) {
-                Image(systemName: "moon.stars.fill")
-                    .font(.system(size: 36))
-                    .foregroundStyle(AppTheme.accent)
-                    .opacity(iconOpacity)
-                    .scaleEffect(iconScale)
-                    .padding(.bottom, 6)
+                ZStack {
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [AppTheme.gold.opacity(0.3), .clear],
+                                center: .center,
+                                startRadius: 2,
+                                endRadius: 38
+                            )
+                        )
+                        .frame(width: 76, height: 76)
 
-                Text("Namaz")
-                    .font(.system(size: 40, weight: .semibold, design: .rounded))
+                    Image(systemName: "moon.stars.fill")
+                        .font(.system(size: 36))
+                        .foregroundStyle(AppTheme.accent)
+                }
+                .opacity(iconOpacity)
+                .scaleEffect(iconScale)
+                .padding(.bottom, 6)
+
+                Text("Sefa")
+                    .font(.custom("SnellRoundhand-Black", size: 52))
                     .foregroundColor(AppTheme.textPrimary(colorScheme))
                     .offset(y: topOffset)
                     .opacity(textOpacity)
 
-                Text("Vakitleri")
-                    .font(.system(size: 40, weight: .semibold, design: .rounded))
+                Text(loc.t("splash_subtitle"))
+                    .font(.custom("SnellRoundhand", size: 26))
                     .foregroundColor(AppTheme.accent)
                     .offset(y: bottomOffset)
                     .opacity(textOpacity)

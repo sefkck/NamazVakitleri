@@ -1,7 +1,9 @@
 import SwiftUI
+import UIKit
 import CoreLocation
 
 struct QiblaView: View {
+    @ObservedObject private var loc = LocalizationManager.shared
     @Environment(\.colorScheme) private var colorScheme
     @StateObject private var viewModel = QiblaViewModel()
 
@@ -10,37 +12,46 @@ struct QiblaView: View {
     @AppStorage("manualLongitude") private var manualLongitude: Double = 0
     @AppStorage("manualProvinceName") private var manualProvinceName: String = ""
 
+    /// Ok, Kâbe yönüne kilitlendiğinde tekrar tekrar titreşmemesi için;
+    /// sadece "hizalanmadı -> hizalandı" geçişinde bir kez tetiklenir.
+    @State private var isAlignedWithQibla = false
+    @State private var showMap = false
+
     private var manualCoordinate: CLLocationCoordinate2D? {
         guard useManualLocation, !manualProvinceName.isEmpty else { return nil }
         return CLLocationCoordinate2D(latitude: manualLatitude, longitude: manualLongitude)
     }
 
     private var arrowRotation: Double {
-        viewModel.qiblaBearing - viewModel.headingDegrees
+        viewModel.arrowAngle
     }
 
     var body: some View {
         NavigationStack {
+            GeometryReader { geo in
+            // Pusula ekran boyuna göre küçülür (iPhone SE'de yazılar kesilmesin).
+            let dial = min(260, max(180, geo.size.height * 0.42))
+            let compact = geo.size.height < 620
             ZStack {
                 AppTheme.background(colorScheme).ignoresSafeArea()
 
-                VStack(spacing: 32) {
+                VStack(spacing: compact ? 16 : 32) {
                     Spacer()
 
-                    if let errorMessage = viewModel.errorMessage {
+                    if !viewModel.isReady, let errorMessage = viewModel.errorMessage {
                         Text(errorMessage)
                             .foregroundStyle(.red)
                             .multilineTextAlignment(.center)
                             .padding()
                     } else if !viewModel.isReady {
-                        ProgressView("Konum ve pusula bekleniyor...")
+                        ProgressView(loc.t("qibla_waiting", fallback: "Konum ve pusula bekleniyor..."))
                             .tint(AppTheme.accent)
                     } else {
                         VStack(spacing: 4) {
-                            Text("Kıble Yönü")
+                            Text(loc.t("qibla_direction", fallback: "Kıble Yönü"))
                                 .font(AppTheme.body(13))
                                 .foregroundStyle(AppTheme.textSecondary(colorScheme))
-                            Text("\(Int(viewModel.qiblaBearing))°")
+                            Text("\(Int(viewModel.qiblaBearing.rounded()))°")
                                 .font(AppTheme.title(40, weight: .bold))
                                 .foregroundColor(AppTheme.textPrimary(colorScheme))
                         }
@@ -60,8 +71,13 @@ struct QiblaView: View {
                             }
 
                             Circle()
-                                .stroke(AppTheme.cardStroke(colorScheme), lineWidth: 2)
+                                .stroke(
+                                    isAlignedWithQibla ? Color.green : AppTheme.cardStroke(colorScheme),
+                                    lineWidth: isAlignedWithQibla ? 4 : 2
+                                )
                                 .frame(width: 260, height: 260)
+                                .shadow(color: isAlignedWithQibla ? .green : .clear, radius: isAlignedWithQibla ? 22 : 0)
+                                .animation(.easeInOut(duration: 0.25), value: isAlignedWithQibla)
 
                             // Kâbe - sade, kod ile çizilmiş küp
                             RoundedRectangle(cornerRadius: 4)
@@ -77,30 +93,110 @@ struct QiblaView: View {
 
                             Image(systemName: "location.north.fill")
                                 .font(.system(size: 56))
-                                .foregroundColor(AppTheme.accent)
-                                .shadow(color: .black.opacity(0.25), radius: 4, y: 2)
+                                .foregroundColor(isAlignedWithQibla ? .green : AppTheme.accent)
+                                .shadow(
+                                    color: isAlignedWithQibla ? .green : .black.opacity(0.25),
+                                    radius: isAlignedWithQibla ? 18 : 4,
+                                    y: isAlignedWithQibla ? 0 : 2
+                                )
                                 .offset(y: -90)
                                 .rotationEffect(.degrees(arrowRotation))
                                 .animation(.easeInOut(duration: 0.2), value: arrowRotation)
+                                .animation(.easeInOut(duration: 0.25), value: isAlignedWithQibla)
                         }
                         .frame(width: 260, height: 260)
+                        .scaleEffect(dial / 260)
+                        .frame(width: dial, height: dial)
+                        // Pusula gerçek yönleri gösterir: Arapça (sağdan sola) arayüzde
+                        // aynalanırsa ok ters yönü (278° yerine 82°) gösteriyordu.
+                        .environment(\.layoutDirection, .leftToRight)
 
-                        Text("Telefonu düz tutup ok, Kâbe yönünü gösterene kadar çevir.")
-                            .font(AppTheme.body(13))
-                            .foregroundStyle(AppTheme.textSecondary(colorScheme))
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 32)
+                        if !viewModel.compassUnavailable {
+                            Text(loc.t("qibla_hint", fallback: "Telefonu düz tutup ok, Kâbe yönünü gösterene kadar çevir."))
+                                .font(AppTheme.body(13))
+                                .foregroundStyle(AppTheme.textSecondary(colorScheme))
+                                .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding(.horizontal, 32)
+                        }
+
+                        if viewModel.compassUnavailable {
+                            Text(loc.tf("qibla_no_compass_hint", "Bu cihazda pusula yok, ok dönmez. Kıble, kuzeyden saat yönünde %d°. Telefonun üst kenarını kuzeye çevirince ok kıbleyi gösterir.", Int(viewModel.qiblaBearing.rounded())))
+                                .font(AppTheme.body(12))
+                                .foregroundStyle(.orange)
+                                .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding(.horizontal, 32)
+                        }
+
+                        if viewModel.needsCalibration {
+                            Text(loc.t("qibla_calibrate", fallback: "Pusula hassasiyeti düşük. Telefonu havada 8 çizerek kalibre et."))
+                                .font(AppTheme.body(12))
+                                .foregroundStyle(.orange)
+                                .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding(.horizontal, 32)
+                        }
+
+                        if let info = viewModel.infoMessage {
+                            Text(info)
+                                .font(AppTheme.body(12))
+                                .foregroundStyle(AppTheme.textTertiary(colorScheme))
+                                .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding(.horizontal, 32)
+                        }
                     }
 
                     Spacer()
                 }
                 .frame(maxWidth: .infinity)
             }
-            .navigationTitle("Kıble Bul")
+            }
+            .navigationTitle(loc.t("tab_qibla", fallback: "Kıble Bul"))
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    if viewModel.userCoordinate != nil {
+                        Button { showMap = true } label: {
+                            Label(loc.t("qibla_map_button", fallback: "Harita"), systemImage: "map")
+                        }
+                        .tint(AppTheme.accent)
+                    }
+                }
+            }
+            .sheet(isPresented: $showMap) {
+                if let origin = viewModel.userCoordinate {
+                    QiblaMapView(origin: origin, bearing: viewModel.qiblaBearing)
+                }
+            }
+            #if DEBUG
+            // Ekran testi: -uiTab qibla -uiQiblaMap YES
+            .onChange(of: viewModel.userCoordinate != nil) { _, ready in
+                if ready && UserDefaults.standard.bool(forKey: "uiQiblaMap") { showMap = true }
+            }
+            #endif
             .onAppear { viewModel.start(fixedCoordinate: manualCoordinate) }
             .onDisappear { viewModel.stop() }
+            .onChange(of: arrowRotation) { _, newValue in
+                checkQiblaAlignment(newValue)
+            }
         }
+    }
+
+    /// Ok yukarı (Kâbe yönüne) yaklaştığında, sadece hizalanma anında
+    /// bir kez hafif titreşim verir; hizalı kaldığı sürece tekrar
+    /// tekrar titremez.
+    private func checkQiblaAlignment(_ rotation: Double) {
+        let normalized = ((rotation.truncatingRemainder(dividingBy: 360)) + 360)
+            .truncatingRemainder(dividingBy: 360)
+        let distanceFromZero = min(normalized, 360 - normalized)
+        let nowAligned = distanceFromZero <= 3
+
+        if nowAligned && !isAlignedWithQibla {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        }
+        isAlignedWithQibla = nowAligned
     }
 }
 

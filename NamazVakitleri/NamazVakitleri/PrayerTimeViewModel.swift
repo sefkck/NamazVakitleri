@@ -9,13 +9,21 @@ import Adhan
 /// namazı (Yatsı) geçtiğinde yarının İmsak'ına geri sayım yapar.
 final class PrayerTimeViewModel: ObservableObject {
 
-    @Published var prayerTimes: PrayerTimes?
+    @Published var prayerTimes: DayPrayerTimes?
     @Published var nextPrayerName: String = "-"
     @Published var remainingTimeText: String = "--:--:--"
+    /// Widget'a aktarmak için bir sonraki vaktin tam tarihi.
+    @Published var nextPrayerDate: Date?
+    /// Bu konum için vakit hesaplanamıyorsa (ör. kutup bölgesi) true.
+    @Published var calculationFailed = false
 
     private var timer: Timer?
     private var lastCoordinate: CLLocationCoordinate2D?
     private var timeZone: TimeZone = .current
+    /// Yatsı'dan sonra her saniye yeniden hesaplamamak için yarının vakitleri.
+    private var tomorrowTimes: DayPrayerTimes?
+    /// Vakitlerin hesaplandığı takvim günü (konumun saat diliminde, "yyyy-MM-dd").
+    private var computedDayKey: String?
 
     /// Konum bilgisi geldiğinde veya değiştiğinde çağrılır.
     func start(coordinate: CLLocationCoordinate2D, timeZone: TimeZone) {
@@ -24,30 +32,26 @@ final class PrayerTimeViewModel: ObservableObject {
         recalculate()
 
         timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+        // .common modu: kullanıcı ekranı kaydırırken de geri sayım dursun istemiyoruz.
+        let newTimer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
             self?.tick()
         }
+        RunLoop.main.add(newTimer, forMode: .common)
+        timer = newTimer
     }
 
     private func recalculate() {
         guard let coordinate = lastCoordinate else { return }
-        prayerTimes = computeTimes(for: Date(), coordinate: coordinate)
+        let now = Date()
+        prayerTimes = computeTimes(for: now, coordinate: coordinate)
+        computedDayKey = Self.dayKey(now, timeZone: timeZone)
+        tomorrowTimes = nil
+        calculationFailed = prayerTimes == nil
         tick()
     }
 
-    private func computeTimes(for date: Date, coordinate: CLLocationCoordinate2D) -> PrayerTimes? {
-        let coordinates = Coordinates(latitude: coordinate.latitude, longitude: coordinate.longitude)
-
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = timeZone
-        let components = calendar.dateComponents([.year, .month, .day], from: date)
-
-        // Diyanet yöntemine en yakın yaklaşım + Türkiye'de yaygın
-        // ikindi hesabı (Şafi/standart, tek gölge boyu).
-        var params = CalculationMethod.turkey.params
-        params.madhab = .shafi
-
-        return PrayerTimes(coordinates: coordinates, date: components, calculationParameters: params)
+    private func computeTimes(for date: Date, coordinate: CLLocationCoordinate2D) -> DayPrayerTimes? {
+        PrayerCalculation.times(on: date, coordinate: coordinate, timeZone: timeZone)
     }
 
     private func tick() {
@@ -56,8 +60,12 @@ final class PrayerTimeViewModel: ObservableObject {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = timeZone
 
-        // Gün değiştiyse (gece yarısını geçtiysek) vakitleri yeniden hesapla
-        if !calendar.isDateInToday(times.fajr) {
+        // Gün değiştiyse (gece yarısını geçtiysek) vakitleri yeniden hesapla.
+        // Eskiden "İmsak bugün mü?" diye bakılıyordu. Telefonun saat dilimi
+        // konumunkinden çok farklıysa (ör. İstanbul saatindeki telefon, Sidney
+        // konumu) İmsak hiçbir zaman "bugün" çıkmıyor, recalculate ↔ tick
+        // sonsuz döngüye girip uygulama çöküyordu. Artık takvim gününe bakılıyor.
+        if Self.dayKey(Date(), timeZone: timeZone) != computedDayKey {
             recalculate()
             return
         }
@@ -65,21 +73,34 @@ final class PrayerTimeViewModel: ObservableObject {
         if let next = times.nextPrayer() {
             nextPrayerName = displayName(for: next)
             let nextTime = times.time(for: next)
+            nextPrayerDate = nextTime
             let diff = max(0, nextTime.timeIntervalSinceNow)
             remainingTimeText = format(diff)
         } else {
             // Bugünün son namazı (Yatsı) geçti - yarının İmsak'ına say
-            if let tomorrow = calendar.date(byAdding: .day, value: 1, to: Date()),
-               let coordinate = lastCoordinate,
-               let tomorrowTimes = computeTimes(for: tomorrow, coordinate: coordinate) {
+            if tomorrowTimes == nil,
+               let tomorrow = calendar.date(byAdding: .day, value: 1, to: Date()),
+               let coordinate = lastCoordinate {
+                tomorrowTimes = computeTimes(for: tomorrow, coordinate: coordinate)
+            }
+            if let tomorrowTimes {
                 nextPrayerName = "Yarın İmsak"
+                nextPrayerDate = tomorrowTimes.fajr
                 let diff = max(0, tomorrowTimes.fajr.timeIntervalSinceNow)
                 remainingTimeText = format(diff)
             } else {
                 nextPrayerName = "Yatsı sonrası"
+                nextPrayerDate = nil
                 remainingTimeText = "--:--:--"
             }
         }
+    }
+
+    static func dayKey(_ date: Date, timeZone: TimeZone) -> String {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
+        let c = calendar.dateComponents([.year, .month, .day], from: date)
+        return String(format: "%04d-%02d-%02d", c.year ?? 0, c.month ?? 0, c.day ?? 0)
     }
 
     private func format(_ interval: TimeInterval) -> String {
@@ -95,7 +116,6 @@ final class PrayerTimeViewModel: ObservableObject {
         case .asr: return "İkindi"
         case .maghrib: return "Akşam"
         case .isha: return "Yatsı"
-        default: return "Yatsı sonrası"
         }
     }
 
