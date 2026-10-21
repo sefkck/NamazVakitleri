@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Uygulama açılışında ~2.5 saniye gösterilen giriş ekranı.
-/// "Sefa" yukarıdan, "Kur'an, Namaz, Kıble" aşağıdan gelip ortada
+/// "Safa" yukarıdan, "Kur'an, Namaz, Kıble" aşağıdan gelip ortada
 /// birleşir, kısa bir süre durur, sonra yumuşakça açılıp ana menüyü
 /// gösterir. "Kiano" adında bir sistem fontu iOS'ta bulunmuyor; en
 /// yakın duran zarif imza tarzı sistem fontu olan Snell Roundhand
@@ -45,7 +45,7 @@ struct SplashView: View {
                 .scaleEffect(iconScale)
                 .padding(.bottom, 6)
 
-                Text("Sefa")
+                Text("Safa")
                     .font(.custom("SnellRoundhand-Black", size: 52))
                     .foregroundColor(AppTheme.textPrimary(colorScheme))
                     .offset(y: topOffset)

@@ -85,7 +85,27 @@ struct PrayerDuasView: View {
 
     var body: some View {
         NavigationView {
-            List(duas) { dua in
+            ScrollViewReader { proxy in
+            List {
+                // Dua başlıkları: uzun listede kaydırmadan istenen duaya git.
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(duas) { d in
+                            Button(loc.t("dua\(duaNumber(d))_title", fallback: d.title)) {
+                                withAnimation { proxy.scrollTo(d.id, anchor: .top) }
+                            }
+                            .font(AppTheme.body(13, weight: .semibold))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 7)
+                            .background(Capsule().fill(AppTheme.accentSoft(colorScheme)))
+                            .foregroundColor(AppTheme.accent)
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+                .listRowBackground(Color.clear)
+                .accessibilityLabel(loc.t("duas_jump", fallback: "Duaya git"))
+            ForEach(duas) { dua in
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
                         Text(loc.t("dua\(duaNumber(dua))_title", fallback: dua.title))
@@ -106,7 +126,7 @@ struct PrayerDuasView: View {
                         }
                     }
                     Text(dua.arabic)
-                        .font(.system(size: 22))
+                        .font(.system(size: AppTheme.scaled(24)))
                         .multilineTextAlignment(.trailing)
                         .environment(\.layoutDirection, .rightToLeft)
                         .foregroundColor(AppTheme.textPrimary(colorScheme))
@@ -123,6 +143,9 @@ struct PrayerDuasView: View {
                 }
                 .padding(.vertical, 6)
                 .listRowBackground(Color.clear)
+                .id(dua.id)
+            }
+            }
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)

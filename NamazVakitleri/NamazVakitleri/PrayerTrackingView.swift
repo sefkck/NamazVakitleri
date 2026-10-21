@@ -48,20 +48,19 @@ struct PrayerTrackingView: View {
                 }
             }
             .onReceive(NotificationCenter.default.publisher(for: PrayerTracker.didChange)) { _ in refresh += 1 }
-            .safeAreaInset(edge: .bottom) { undoBar }
         }
     }
 
     // MARK: - Bugün
 
-    /// Yanlış dokunuşu geri almak için ~4 sn görünen "Sabah kılındı · Geri Al" çubuğu.
+    /// Yanlış dokunuşu geri almak için ~10 sn görünen "Sabah kılındı · Geri Al" satırı (yaşlı kullanıcılar da yetişsin).
     private struct UndoInfo: Equatable { let name: String; let dayKey: String; let nowPrayed: Bool; let id: Int }
     @State private var undo: UndoInfo?
 
     private func showUndo(name: String, dayKey: String, nowPrayed: Bool) {
         let info = UndoInfo(name: name, dayKey: dayKey, nowPrayed: nowPrayed, id: (undo?.id ?? 0) + 1)
         withAnimation { undo = info }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
             if undo == info { withAnimation { undo = nil } }
         }
     }
@@ -70,28 +69,26 @@ struct PrayerTrackingView: View {
     private var undoBar: some View {
         if let u = undo {
             HStack(spacing: 12) {
+                Image(systemName: "arrow.uturn.backward.circle.fill").foregroundColor(AppTheme.accent)
                 Text(loc.tf(u.nowPrayed ? "tracking_marked" : "tracking_unmarked",
                             u.nowPrayed ? "%@ kılındı olarak işaretlendi" : "%@ işareti kaldırıldı",
                             PrayerTracker.namazName(u.name)))
                     .font(AppTheme.body(14, weight: .medium))
-                    .foregroundColor(.white)
-                    .lineLimit(2)
+                    .foregroundColor(AppTheme.textPrimary(colorScheme))
                 Spacer(minLength: 4)
                 Button(loc.t("common_undo", fallback: "Geri Al")) {
                     PrayerTracker.setPrayed(!u.nowPrayed, name: u.name, dayKey: u.dayKey)
                     withAnimation { undo = nil }
                 }
-                .font(AppTheme.body(14, weight: .bold))
-                .foregroundColor(AppTheme.gold)
+                .font(AppTheme.body(15, weight: .bold))
+                .foregroundColor(AppTheme.accent)
+                .buttonStyle(.borderless)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(Capsule().fill(Color.black.opacity(0.85)))
-            .padding(.horizontal, 16)
-            .padding(.bottom, 12)
-            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .listRowBackground(AppTheme.accentSoft(colorScheme))
+            .transition(.opacity)
         }
     }
+
 
     private var todaySection: some View {
         let key = PrayerTracker.dayKey(Date(), timeZone: timeZone)
@@ -122,7 +119,11 @@ struct PrayerTrackingView: View {
                     }
                 }
                 .disabled(!started)
+                .id("today-\(item.name)-\(refresh)")
             }
+            // Geri Al satırı vakitlerin hemen altında: kaza düğmelerinin üstüne
+            // binmesin (çubuk kaybolurken dokunuş alttaki "+"ya gidiyordu).
+            if undo != nil { undoBar }
         } header: {
             Text(loc.tf("tracking_today", "Bugün · %d/5", PrayerTracker.prayedCount(dayKey: key)) + (refresh < 0 ? "" : ""))
         } footer: {
@@ -193,8 +194,10 @@ struct PrayerTrackingView: View {
         Section {
             ForEach(PrayerTracker.kazaNames, id: \.self) { name in
                 let count = PrayerTracker.kazaCount(name)
+                // Değer her seferinde kayıttan okunur: eskiden satır yenilenmediği için
+                // "+" hep eski değeri (0) görüp 1 yazıyordu, satırda da 0 kalıyordu.
                 Stepper(value: Binding(
-                    get: { count },
+                    get: { PrayerTracker.kazaCount(name) },
                     set: { PrayerTracker.setKazaCount($0, for: name) }
                 ), in: 0...99_999) {
                     HStack {
@@ -205,6 +208,8 @@ struct PrayerTrackingView: View {
                             .foregroundStyle(count > 0 ? AppTheme.accent : .secondary)
                     }
                 }
+                // Kayıt değişince satır yeniden çizilsin (liste satırları kendiliğinden yenilenmiyordu).
+                .id("kaza-\(name)-\(refresh)")
             }
         } header: {
             Text(loc.tf("tracking_kaza", "Kaza namazları · toplam %d", PrayerTracker.totalKaza))

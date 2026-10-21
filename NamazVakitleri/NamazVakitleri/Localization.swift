@@ -56,8 +56,17 @@ final class LocalizationManager: ObservableObject {
 
     static let appGroupID = "group.com.kocaksefa.namazvakitleri"
 
+    /// Sağdan sola ↔ soldan sağa geçişte bütün ekran yeniden kurulur ve açık
+    /// Ayarlar penceresi kapanırdı. Bu bayrak, yeniden kurulumdan sonra Ayarlar'ı
+    /// tekrar açmak için kullanılır (MainTabView + MoreMenuView okur).
+    static var reopenSettingsAfterRebuild = false
+
     @Published var language: AppLanguage {
         didSet {
+            // Sadece Ayarlar'dan değişince (karşılama ekranında değil).
+            if oldValue.isRightToLeft != language.isRightToLeft, UserDefaults.standard.bool(forKey: "hasSeenWelcome") {
+                Self.reopenSettingsAfterRebuild = true
+            }
             UserDefaults.standard.set(language.rawValue, forKey: "appLanguage")
             // Widget'lar ayrı bir process'te çalıştığı için dili App Group
             // üzerinden de paylaşıyoruz.
@@ -220,8 +229,8 @@ enum LocalizationStrings {
 
         // MARK: - Zikirmatik
         "zikir_goal": [.english: "Goal", .arabic: "الهدف", .german: "Ziel"],
-        "zikir_unlimited": [.turkish: "Sınırsız", .english: "Unlimited", .arabic: "غير محدود", .german: "Unbegrenzt"],
-        "zikir_custom": [.turkish: "Özel", .english: "Custom", .arabic: "مخصص", .german: "Benutzerdefiniert"],
+        "zikir_unlimited": [.turkish: "Sınırsız", .english: "Unlimited", .arabic: "غير محدود", .german: "Frei"],
+        "zikir_custom": [.turkish: "Özel", .english: "Custom", .arabic: "مخصص", .german: "Eigenes"],
         "zikir_goal_label": [.english: "Target count:", .arabic: "العدد المستهدف:", .german: "Zielanzahl:"],
         "zikir_placeholder": [.english: "e.g. 250", .arabic: "مثال: 250", .german: "z. B. 250"],
         "zikir_remaining": [.english: "Remaining: %d", .arabic: "المتبقي: %d", .german: "Verbleibend: %d"],
@@ -517,7 +526,7 @@ enum LocalizationStrings {
         "kerahat_istiva": [.english: "Noon (sun at its peak)", .arabic: "الظهيرة (الاستواء)", .german: "Mittags (Sonnenhöchststand)"],
         "kerahat_isfirar": [.english: "Evening (before sunset)", .arabic: "المساء (قبل الغروب)", .german: "Abends (vor Sonnenuntergang)"],
         "settings_kerahat": [.english: "Show Makruh Times", .arabic: "إظهار أوقات الكراهة", .german: "Makruh-Zeiten anzeigen"],
-        "settings_kerahat_footer": [.english: "During a makruh time, a notice appears on the home screen: about 45 minutes after sunrise and before sunset, and about 10 minutes before noon prayer (sun at its peak). These durations follow common calendar practice; exact times change by place and day. You can ask Siri: \"Safa next prayer\".", .arabic: "في وقت الكراهة يظهر تنبيه في الشاشة الرئيسية: نحو 45 دقيقة بعد الشروق وقبل الغروب، ونحو 10 دقائق قبل الظهر (الاستواء). هذه المدد حسب العرف الشائع في التقاويم، والأوقات الدقيقة تختلف حسب المكان واليوم.", .german: "Während einer Makruh-Zeit erscheint auf der Startseite ein Hinweis: etwa 45 Minuten nach Sonnenaufgang und vor Sonnenuntergang sowie etwa 10 Minuten vor dem Mittagsgebet (Sonnenhöchststand). Die Dauer folgt der üblichen Kalenderpraxis; genaue Zeiten hängen von Ort und Tag ab. Du kannst Siri fragen: \"Safa next prayer\"."],
+        "settings_kerahat_footer": [.english: "During a makruh time, a notice appears on the home screen: about 45 minutes after sunrise and before sunset, and about 10 minutes before noon prayer (sun at its peak). These durations follow common calendar practice; exact times change by place and day. You can ask Siri: \"Safa next prayer\".", .arabic: "في وقت الكراهة يظهر تنبيه في الشاشة الرئيسية: نحو 45 دقيقة بعد الشروق وقبل الغروب، ونحو 10 دقائق قبل الظهر (الاستواء). هذه المدد حسب العرف الشائع في التقاويم، والأوقات الدقيقة تختلف حسب المكان واليوم.", .german: "Während einer Makruh-Zeit erscheint auf der Startseite ein Hinweis: etwa 45 Minuten nach Sonnenaufgang und vor Sonnenuntergang sowie etwa 10 Minuten vor dem Mittagsgebet (Sonnenhöchststand). Die Dauer folgt der üblichen Kalenderpraxis; genaue Zeiten hängen von Ort und Tag ab."],
         "siri_no_location": [.english: "Open the app once first so it can find your location.", .arabic: "افتح التطبيق مرة واحدة أولًا لتحديد موقعك.", .german: "Öffne die App zuerst einmal, damit sie deinen Standort findet."],
         "siri_no_times": [.english: "Prayer times could not be calculated.", .arabic: "تعذّر حساب مواقيت الصلاة.", .german: "Die Gebetszeiten konnten nicht berechnet werden."],
         "siri_next_answer": [.english: "The next prayer is %@ at %@. %@ left.", .arabic: "الصلاة التالية %@ في الساعة %@. المتبقي %@.", .german: "Das nächste Gebet ist %@ um %@. Noch %@."],
@@ -571,6 +580,9 @@ enum LocalizationStrings {
         "tracking_unmarked": [.english: "%@ mark removed", .arabic: "أُزيلت علامة %@", .german: "Markierung für %@ entfernt"],
         "common_undo": [.english: "Undo", .arabic: "تراجع", .german: "Rückgängig"],
         "settings_current_place": [.english: "Current location", .arabic: "الموقع الحالي", .german: "Aktueller Ort"],
+        "home_time_left": [.english: "left", .arabic: "متبقٍ", .german: "übrig"],
+        "settings_adjust_footer_abroad": [.english: "Times are calculated with the Diyanet method. Abroad, Diyanet's own calendar for that city can differ by a few minutes, especially for Fajr and Isha. You can fine-tune the minutes here to match your mosque.", .arabic: "تُحسب الأوقات بطريقة ديانت. خارج تركيا قد يختلف تقويم ديانت لتلك المدينة ببضع دقائق، خاصة في الفجر والعشاء. يمكنك ضبط الدقائق هنا حسب مسجدك.", .german: "Die Zeiten werden nach der Diyanet-Methode berechnet. Im Ausland kann der Diyanet-Kalender der Stadt, vor allem bei Fajr und Isha, einige Minuten abweichen. Hier kannst du die Minuten an deine Moschee anpassen."],
+        "duas_jump": [.english: "Go to", .arabic: "انتقل إلى", .german: "Springe zu"],
         "common_clear": [.english: "Clear", .arabic: "مسح", .german: "Löschen"],
         "mosque_err_search": [.english: "Couldn't search for mosques. Check your internet connection and try again.", .arabic: "تعذّر البحث عن المساجد. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.", .german: "Moscheesuche fehlgeschlagen. Prüfe deine Internetverbindung und versuche es erneut."]
     ]

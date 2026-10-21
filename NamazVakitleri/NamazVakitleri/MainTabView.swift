@@ -40,6 +40,7 @@ struct MainTabView: View {
         default: break
         }
         #endif
+        if LocalizationManager.reopenSettingsAfterRebuild { initialTab = .more }
         _selectedTab = State(initialValue: initialTab)
     }
 

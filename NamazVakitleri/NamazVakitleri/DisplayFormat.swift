@@ -34,9 +34,14 @@ enum DisplayFormat {
     static func distance(meters: Double) -> String {
         if usesMiles {
             let miles = meters / 1609.344
-            return miles < 0.1 ? String(format: "%.0f ft", meters * 3.28084) : String(format: "%.1f mi", miles)
+            return miles < 0.1 ? String(format: "%.0f ft", meters * 3.28084) : "\(oneDecimal(miles)) mi"
         }
-        return meters < 1000 ? String(format: "%.0f m", meters) : String(format: "%.1f km", meters / 1000)
+        return meters < 1000 ? String(format: "%.0f m", meters) : "\(oneDecimal(meters / 1000)) km"
+    }
+
+    /// Bir ondalık, telefonun bölge ayarına göre ("1,6" Almanya, "1.6" ABD).
+    static func oneDecimal(_ value: Double) -> String {
+        value.formatted(.number.precision(.fractionLength(1)))
     }
 
     /// Uzun mesafe (Kâbe'ye): "2.400 km" ya da "1,491 mi".

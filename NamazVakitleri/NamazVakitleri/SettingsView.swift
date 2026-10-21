@@ -24,6 +24,22 @@ struct SettingsView: View {
     @AppStorage(NotificationManager.fridayEnabledKey) private var fridayEnabled: Bool = true
     @AppStorage(NotificationManager.religiousDaysEnabledKey) private var religiousDaysEnabled: Bool = true
     @AppStorage(NotificationManager.sahurEnabledKey) private var sahurEnabled: Bool = true
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @State private var alarmTestSeconds = 0
+
+    /// Son bilinen konum Türkiye'de mi? (Diyanet uyumu "en fazla 1 dk" sadece Türkiye için ölçüldü.)
+    static var locationIsInTurkey: Bool {
+        let tz = UserDefaults.standard.string(forKey: "lastKnownTimeZoneID") ?? TimeZone.current.identifier
+        return tz == "Europe/Istanbul" || tz == "Asia/Istanbul"
+    }
+
+    private func startAlarmTestCountdown() {
+        alarmTestSeconds = 5
+        for k in 1...5 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(k)) { alarmTestSeconds = max(0, 5 - k) }
+        }
+    }
+
     @State private var methodRefresh = 0
     @ObservedObject private var audioStore = QuranAudioStore.shared
     @AppStorage("showKerahat") private var showKerahat: Bool = true
@@ -258,9 +274,16 @@ struct SettingsView: View {
                     NotificationManager.shared.requestAuthorization { granted in
                         guard granted else { return }
                         NotificationManager.shared.scheduleTestPrayerAlarm()
+                        // Basınca hiçbir şey olmuyor sanılıyordu: geri sayım göster.
+                        DispatchQueue.main.async { startAlarmTestCountdown() }
                     }
                 }
                 .foregroundColor(AppTheme.accent)
+                if alarmTestSeconds > 0 {
+                    Label(loc.tf("settings_try_alarm_countdown", "Deneme alarmı %d saniye sonra gelecek", alarmTestSeconds), systemImage: "timer")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
             } header: {
                 Text(loc.t("settings_prayer_notifs", fallback: "Namaz Vakti Bildirimleri"))
             } footer: {
@@ -401,7 +424,9 @@ struct SettingsView: View {
                 Text(loc.t("settings_adjust", fallback: "Vakit İnce Ayarı"))
             } footer: {
                 let _ = methodRefresh
-                if PrayerCalculation.selectedMethod == .diyanet {
+                if PrayerCalculation.selectedMethod == .diyanet && !Self.locationIsInTurkey {
+                    Text(loc.t("settings_adjust_footer_abroad", fallback: "Vakitler Diyanet yöntemiyle hesaplanır. Yurt dışında Diyanet'in o şehir için yayımladığı takvim, özellikle İmsak ve Yatsı'da birkaç dakika farklı olabilir. Gittiğin camiye göre burada dakika ayarı yapabilirsin."))
+                } else if PrayerCalculation.selectedMethod == .diyanet {
                     Text(loc.t("settings_adjust_footer", fallback: "Vakitler Diyanet yöntemiyle hesaplanır ve resmi tabloyla çoğu gün tam tutar (en fazla 1 dakika fark). Semtindeki camiye göre burada dakika ayarı yapabilirsin."))
                 } else {
                     Text(loc.tf("settings_adjust_footer_other", "Vakitler %@ yöntemiyle hesaplanır. Gittiğin caminin takvimine göre burada dakika ayarı yapabilirsin.",
@@ -413,6 +438,8 @@ struct SettingsView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
+    /// Çok büyük yazıda başlık ve değer yan yana sığmıyor ("Görünü m ve Dil" diye
+    /// kelime ortasından bölünüyordu): değer başlığın altına geçer.
     private func hubRow(icon: String, color: Color, title: String, detail: String? = nil) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
@@ -421,15 +448,23 @@ struct SettingsView: View {
                 .frame(width: 30, height: 30)
                 .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(color))
 
-            Text(title)
-
-            Spacer(minLength: 8)
-
-            if let detail, !detail.isEmpty {
-                Text(detail)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+            if typeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                    if let detail, !detail.isEmpty {
+                        Text(detail).font(.subheadline).foregroundStyle(.secondary)
+                    }
+                }
+                Spacer(minLength: 0)
+            } else {
+                Text(title)
+                Spacer(minLength: 8)
+                if let detail, !detail.isEmpty {
+                    Text(detail)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
             }
         }
         .contentShape(Rectangle())
@@ -537,7 +572,7 @@ struct SettingsView: View {
                 HStack {
                     Text(loc.t("audio_storage_size", fallback: "Kapladığı yer"))
                     Spacer()
-                    Text(String(format: "%.1f MB", Double(audioStore.totalBytes) / 1_000_000))
+                    Text(DisplayFormat.oneDecimal(Double(audioStore.totalBytes) / 1_000_000) + " MB")
                         .foregroundStyle(.secondary)
                 }
                 if audioStore.totalBytes > 0 {

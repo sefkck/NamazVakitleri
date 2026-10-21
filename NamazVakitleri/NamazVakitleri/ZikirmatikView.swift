@@ -169,6 +169,10 @@ struct ZikirmatikView: View {
                     .background(RoundedRectangle(cornerRadius: 14).fill(AppTheme.cardFill(colorScheme)))
                     .padding(.horizontal)
                     .onAppear { customGoalText = String(customGoal) }
+                    // "0" ya da boş bırakılırsa kutu gerçek hedefi gösterir (hedef en az 1).
+                    .onChange(of: isCustomFieldFocused) { _, focused in
+                        if !focused { customGoalText = String(max(customGoal, 1)) }
+                    }
                 }
 
                 // Boşluğun bir kısmı sayaçtan önce: sayaç ortaya yaklaşır.

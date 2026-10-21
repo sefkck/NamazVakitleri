@@ -384,7 +384,7 @@ private struct SurahDetailView: View {
                 Text(RecitationPlayer.localizedReciterName)
                     .font(AppTheme.body(14, weight: .semibold))
                     .foregroundColor(AppTheme.textPrimary(colorScheme))
-                    .lineLimit(1)
+                    .lineLimit(2)
                     .minimumScaleFactor(0.8)
                 if let index = recitation.currentIndex {
                     Text(loc.tf("recitation_now", "%d. ayet okunuyor", index + 1))

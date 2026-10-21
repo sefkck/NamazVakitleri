@@ -400,12 +400,19 @@ struct HomeView: View {
                         .foregroundColor(AppTheme.accent)
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
-                    Text(prayerViewModel.remainingTimeText)
-                        .font(AppTheme.title(layout.countdownSize, weight: .semibold))
-                        .foregroundColor(AppTheme.textPrimary(colorScheme))
-                        .monospacedDigit()
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
+                    // Geri sayım saat gibi okunuyordu: yanına "kaldı" yazılır.
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text(prayerViewModel.remainingTimeText)
+                            .font(AppTheme.title(layout.countdownSize, weight: .semibold))
+                            .foregroundColor(AppTheme.textPrimary(colorScheme))
+                            .monospacedDigit()
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                        Text(loc.t("home_time_left", fallback: "kaldı"))
+                            .font(AppTheme.body(12))
+                            .foregroundColor(AppTheme.textSecondary(colorScheme))
+                            .lineLimit(1)
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -592,18 +599,23 @@ struct HomeView: View {
                 Button {
                     PrayerTracker.setPrayed(!isPrayed, name: prayer.name, dayKey: todayKey)
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    // Dokunuşun işe yaradığı görülsün (yaşlı kullanıcılar emin olamıyordu).
+                    showAlarmToast(loc.tf(!isPrayed ? "tracking_marked" : "tracking_unmarked",
+                                          !isPrayed ? "%@ kılındı olarak işaretlendi" : "%@ işareti kaldırıldı",
+                                          PrayerTracker.namazName(prayer.name)))
                 } label: {
+                    // Büyük dokunma alanı (44 pt): titrek parmakla da tutsun.
                     Image(systemName: isPrayed ? "checkmark.circle.fill" : "circle")
-                        .font(.system(size: 19, weight: .semibold))
+                        .font(.system(size: AppTheme.scaled(22), weight: .semibold))
                         .foregroundColor(isPrayed ? AppTheme.accent : AppTheme.textTertiary(colorScheme))
-                        .frame(width: 36, height: layout.rowHeight)
+                        .frame(width: 44, height: max(44, layout.rowHeight))
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(loc.tf(isPrayed ? "home_prayed_on" : "home_prayed_off",
                                            isPrayed ? "%@ kılındı" : "%@ kılınmadı", loc.x(prayer.name)))
             } else {
-                Color.clear.frame(width: 36, height: layout.rowHeight)
+                Color.clear.frame(width: 44, height: layout.rowHeight)
             }
 
             // Güneş bir namaz vakti değil: zil yok, hizayı korumak için boşluk.

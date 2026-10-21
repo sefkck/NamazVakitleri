@@ -36,6 +36,8 @@ struct MoreMenuView: View {
                     }
                 }
                 .scrollContentBackground(.hidden)
+                // Alttaki menü çubuğu + reklam son satırı örtmesin (büyük yazıda "Ayarlar" altında kalıyordu).
+                .contentMargins(.bottom, 130, for: .scrollContent)
             }
             .navigationTitle(loc.t("tab_more", fallback: "Daha Fazla"))
         }
@@ -54,6 +56,13 @@ struct MoreMenuView: View {
         }
         .fullScreenCover(isPresented: $showLockWidgetsPreview) { LockScreenWidgetsPreview() }
         #endif
+        .onAppear {
+            // Dil yönü değişince ekran yeniden kuruldu: Ayarlar'a geri dön.
+            if LocalizationManager.reopenSettingsAfterRebuild {
+                LocalizationManager.reopenSettingsAfterRebuild = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { activeSheet = .settings }
+            }
+        }
         .sheet(item: $activeSheet) { destination in
             Group {
                 switch destination {

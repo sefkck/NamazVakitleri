@@ -419,7 +419,7 @@ enum SelfTests {
                        "recitation_error", "recitation_error_title", "recitation_from_ayah", "recitation_reciter",
                        "recitation_now", "recitation_pause", "sources_title", "sources_note",
                        "zikir_reset_confirm_title", "zikir_reset_confirm_body", "zikir_mode_tesbihat",
-                       "tesbih_subhanallah", "tesbih_elhamdulillah", "tesbih_allahuekber", "tesbih_step", "privacy_read_web", "lock_widget_name", "lock_widget_desc", "kerahat_now_title", "kerahat_israk", "kerahat_istiva", "kerahat_isfirar", "settings_kerahat", "settings_kerahat_footer", "siri_no_location", "siri_no_times", "siri_next_answer", "siri_remaining_hm", "siri_remaining_m", "siri_kerahat_now", "siri_kerahat_next", "siri_kerahat_none", "qibla_kaaba", "qibla_you", "qibla_map_info", "qibla_map_hint", "qibla_map_near", "qibla_map_whole", "qibla_map_title", "qibla_map_button", "home_alarm_toast_on", "home_alarm_toast_off", "imsakiye_ramadan_year", "settings_kerahat_page", "kerahat_today", "common_on", "common_off", "qibla_map_north", "qibla_map_hint_north", "prayer_sabah", "prayer_vitir", "qibla_map_info2", "watch_open_phone", "settings_adjust_footer_other", "tracking_marked", "tracking_unmarked", "common_undo", "settings_current_place", "watch_qibla_hint", "audio_download", "audio_downloaded", "audio_downloading", "audio_delete_title", "audio_delete", "audio_delete_body", "audio_download_error", "audio_download_error_title", "audio_storage_title", "audio_storage_size", "audio_delete_all", "method_title", "method_diyanet", "method_isna", "method_mwl", "method_ummAlQura", "method_footer"]
+                       "tesbih_subhanallah", "tesbih_elhamdulillah", "tesbih_allahuekber", "tesbih_step", "privacy_read_web", "lock_widget_name", "lock_widget_desc", "kerahat_now_title", "kerahat_israk", "kerahat_istiva", "kerahat_isfirar", "settings_kerahat", "settings_kerahat_footer", "siri_no_location", "siri_no_times", "siri_next_answer", "siri_remaining_hm", "siri_remaining_m", "siri_kerahat_now", "siri_kerahat_next", "siri_kerahat_none", "qibla_kaaba", "qibla_you", "qibla_map_info", "qibla_map_hint", "qibla_map_near", "qibla_map_whole", "qibla_map_title", "qibla_map_button", "home_alarm_toast_on", "home_alarm_toast_off", "imsakiye_ramadan_year", "settings_kerahat_page", "kerahat_today", "common_on", "common_off", "qibla_map_north", "qibla_map_hint_north", "prayer_sabah", "prayer_vitir", "qibla_map_info2", "watch_open_phone", "settings_adjust_footer_other", "tracking_marked", "tracking_unmarked", "common_undo", "settings_current_place", "home_time_left", "settings_adjust_footer_abroad", "duas_jump", "watch_qibla_hint", "audio_download", "audio_downloaded", "audio_downloading", "audio_delete_title", "audio_delete", "audio_delete_body", "audio_download_error", "audio_download_error_title", "audio_storage_title", "audio_storage_size", "audio_delete_all", "method_title", "method_diyanet", "method_isna", "method_mwl", "method_ummAlQura", "method_footer"]
         let missing = newKeys.filter { key in
             guard let e = LocalizationStrings.table[key] else { return true }
             return e[.english] == nil || e[.arabic] == nil || e[.german] == nil
@@ -623,7 +623,7 @@ enum SelfTests {
             let t = DisplayFormat.time(d, timeZone: tz, locale: Locale(identifier: "en_US"))
             let timeOK = DisplayFormat.uses12Hour ? (t.contains("7:30") && t.uppercased().contains("PM")) : t == "19:30"
             let m = DisplayFormat.distance(meters: 2300)
-            let distOK = DisplayFormat.usesMiles ? m == "1.4 mi" : m == "2.3 km"
+            let distOK = m == (DisplayFormat.usesMiles ? DisplayFormat.oneDecimal(1.4) + " mi" : DisplayFormat.oneDecimal(2.3) + " km")
             let longOK = DisplayFormat.longDistance(km: 2400).hasSuffix(DisplayFormat.usesMiles ? "mi" : "km")
             check("T70", "Saat ve mesafe telefon ayarına göre (12/24 saat, mil/km)", timeOK && distOK && longOK,
                   "\(t) | \(m) | 12h:\(DisplayFormat.uses12Hour) mil:\(DisplayFormat.usesMiles)")
@@ -692,6 +692,22 @@ enum SelfTests {
                 && (amana?.okunus.contains("kâfirîn") ?? false) && amana?.quranAyahs == [292, 293]
                 && !(ReligiousDays.upcoming(from: Date(timeIntervalSince1970: 1_790_000_000)).contains { ($0.name.hasPrefix("Ramazan Bayramı") || $0.name == "Kadir Gecesi") && $0.note == "Yaklaşık tarih" && $0.date < Date(timeIntervalSince1970: 1_800_000_000) })
             check("T75", "Dualar tam metin (Kunut 1, Kürsî, Rabbişrahlî, Âmenerrasûlü); Diyanet tarihlerinde 'Yaklaşık' yok", ok)
+        }
+
+        // T76: 4. tur düzeltmeleri: kaza değeri her okumada güncel; yurt dışı/Türkiye açıklama ayrımı; uygulama adı Safa.
+        do {
+            let backup = PrayerTracker.kazaCount("Vitir")
+            PrayerTracker.setKazaCount(4, for: "Vitir")
+            let a = PrayerTracker.kazaCount("Vitir")
+            PrayerTracker.setKazaCount(a + 1, for: "Vitir")      // "+" her seferinde güncel değeri okur
+            let b = PrayerTracker.kazaCount("Vitir")
+            PrayerTracker.setKazaCount(backup, for: "Vitir")
+            let d = UserDefaults.standard
+            let tzBackup = d.object(forKey: "lastKnownTimeZoneID")
+            d.set("Europe/Berlin", forKey: "lastKnownTimeZoneID"); let abroad = !SettingsView.locationIsInTurkey
+            d.set("Europe/Istanbul", forKey: "lastKnownTimeZoneID"); let home = SettingsView.locationIsInTurkey
+            if let tzBackup { d.set(tzBackup, forKey: "lastKnownTimeZoneID") } else { d.removeObject(forKey: "lastKnownTimeZoneID") }
+            check("T76", "Kaza +1 güncel değerden; 'en fazla 1 dk' yazısı sadece Türkiye'de", a == 4 && b == 5 && abroad && home)
         }
 
         // T35: Çift Besmele kaldırılıyor (Fâtiha ve Tevbe hariç).
