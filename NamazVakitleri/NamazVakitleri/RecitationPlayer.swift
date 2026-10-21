@@ -19,8 +19,17 @@ final class RecitationPlayer: ObservableObject {
         }
     }
 
-    /// Ayetin Kur'an genelindeki sıra numarası (1...6236) için ses adresi.
+    /// Ayetin ses adresi: indirildiyse telefondaki dosya, yoksa internet.
     static func audioURL(globalAyahNumber: Int) -> URL? {
+        guard (1...6236).contains(globalAyahNumber) else { return nil }
+        if QuranAudioStore.hasLocal(globalAyahNumber) {
+            return QuranAudioStore.localURL(globalAyahNumber: globalAyahNumber)
+        }
+        return remoteURL(globalAyahNumber: globalAyahNumber)
+    }
+
+    /// Ayetin Kur'an genelindeki sıra numarası (1...6236) için internet adresi.
+    static func remoteURL(globalAyahNumber: Int) -> URL? {
         guard (1...6236).contains(globalAyahNumber) else { return nil }
         return URL(string: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/\(globalAyahNumber).mp3")
     }
@@ -82,6 +91,7 @@ final class RecitationPlayer: ObservableObject {
         guard let url = Self.audioURL(globalAyahNumber: ayahNumbers[index]) else { stop(); return }
         let item = AVPlayerItem(url: url)
         let newPlayer = AVPlayer(playerItem: item)
+        newPlayer.isMuted = DebugMute.isOn
         player = newPlayer
         currentIndex = index
         isLoading = true

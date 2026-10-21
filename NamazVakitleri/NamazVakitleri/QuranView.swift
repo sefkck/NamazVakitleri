@@ -183,6 +183,7 @@ private struct SurahDetailView: View {
     @AppStorage("lastReadAyahNumber") private var lastReadAyahNumber: Int = 0
 
     @StateObject private var recitation = RecitationPlayer()
+    @ObservedObject private var audioStore = QuranAudioStore.shared
 
     let surah: QuranSurahSummary
 
@@ -209,11 +210,18 @@ private struct SurahDetailView: View {
                                 .font(AppTheme.body(12))
                                 .foregroundStyle(AppTheme.textTertiary(colorScheme))
 
-                            if surah.number != 9 {
+                            // Fâtiha'da besmele 1. ayettir (iki kez gösterme); Tevbe'de besmele yok.
+                            if surah.number != 9 && surah.number != 1 {
                                 Text("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ")
                                     .font(quranArabicFont(size: 24))
                                     .foregroundColor(AppTheme.textPrimary(colorScheme))
                                     .padding(.top, 10)
+                                if loc.language != .arabic {
+                                    Text(loc.language == .turkish ? "Bismillâhirrahmânirrahîm" : "Bismillāhir-raḥmānir-raḥīm")
+                                        .font(AppTheme.body(13))
+                                        .italic()
+                                        .foregroundStyle(AppTheme.textSecondary(colorScheme))
+                                }
                             }
                         }
                         .frame(maxWidth: .infinity)
@@ -295,6 +303,14 @@ private struct SurahDetailView: View {
         } message: {
             Text(recitation.errorMessage ?? "")
         }
+        .alert(loc.t("audio_download_error_title", fallback: "İndirme tamamlanamadı"), isPresented: Binding(
+            get: { audioStore.lastError != nil },
+            set: { if !$0 { audioStore.lastError = nil } }
+        )) {
+            Button(loc.t("common_ok", fallback: "Tamam"), role: .cancel) {}
+        } message: {
+            Text(audioStore.lastError ?? "")
+        }
         .background(AppTheme.background(colorScheme).ignoresSafeArea())
         .navigationTitle(SurahNames.title(for: surah))
         .navigationBarTitleDisplayMode(.inline)
@@ -312,6 +328,49 @@ private struct SurahDetailView: View {
             #endif
             lastReadSurahName = SurahNames.title(for: surah)
             lastReadAyahNumber = 1
+        }
+    }
+
+    /// İndir düğmesi: indirilmemiş → ok; iniyor → ilerleme halkası (dokununca durur);
+    /// inmiş → yeşil tik (dokununca silme sorusu). İnen sure internetsiz dinlenir.
+    @ViewBuilder
+    private func downloadButton(_ content: QuranAPI.SurahContent) -> some View {
+        let numbers = content.arabic.map(\.number)
+        let _ = audioStore.revision
+        if let p = audioStore.progress[surah.number] {
+            Button { audioStore.cancel(surah: surah.number) } label: {
+                ZStack {
+                    Circle().stroke(AppTheme.accent.opacity(0.25), lineWidth: 3)
+                    Circle().trim(from: 0, to: p).stroke(AppTheme.accent, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                        .rotationEffect(.degrees(-90))
+                    Text("\(Int(p * 100))").font(.system(size: 10, weight: .bold)).foregroundColor(AppTheme.accent)
+                }
+                .frame(width: 30, height: 30)
+                .frame(width: 44, height: 44)
+            }
+            .accessibilityLabel(loc.tf("audio_downloading", "İndiriliyor %%%d", Int(p * 100)))
+        } else if audioStore.isDownloaded(numbers) {
+            // Tek dokunuşla menü açılır (eskiden sadece uzun basınca soruyordu).
+            Menu {
+                Text(loc.t("audio_downloaded", fallback: "İndirildi, internetsiz dinlenebilir"))
+                Button(role: .destructive) { audioStore.delete(numbers) } label: {
+                    Label(loc.t("audio_delete", fallback: "Sesi Sil"), systemImage: "trash")
+                }
+            } label: {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 22))
+                    .foregroundColor(.green)
+                    .frame(width: 44, height: 44)
+            }
+            .accessibilityLabel(loc.t("audio_downloaded", fallback: "İndirildi, internetsiz dinlenebilir"))
+        } else {
+            Button { audioStore.download(surah: surah.number, globalNumbers: numbers) } label: {
+                Image(systemName: "arrow.down.circle")
+                    .font(.system(size: 22))
+                    .foregroundColor(AppTheme.accent)
+                    .frame(width: 44, height: 44)
+            }
+            .accessibilityLabel(loc.t("audio_download", fallback: "İnternetsiz dinlemek için indir"))
         }
     }
 
@@ -334,6 +393,7 @@ private struct SurahDetailView: View {
                 }
             }
             Spacer(minLength: 4)
+            downloadButton(content)
             if recitation.isLoading {
                 ProgressView().tint(AppTheme.accent)
             }

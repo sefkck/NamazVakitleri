@@ -12,6 +12,8 @@
 		7DD49EA93071B3570070EB0C /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DD49EA83071B3560070EB0C /* WidgetKit.framework */; };
 		7DD49EAB3071B3570070EB0C /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DD49EAA3071B3570070EB0C /* SwiftUI.framework */; };
 		7DD49EB83071B3570070EB0C /* SafaWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7DD49EA63071B3560070EB0C /* SafaWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		7E10A0003100000000AA000B /* Adhan in Frameworks */ = {isa = PBXBuildFile; productRef = 7E10A0003100000000AA000A /* Adhan */; };
+		7E10A0003100000000AA000C /* SafaWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 7E10A0003100000000AA0000 /* SafaWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -21,6 +23,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 7DD49EA53071B3560070EB0C;
 			remoteInfo = SafaWidgetsExtension;
+		};
+		7E10A0003100000000AA000E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7D34096D303EA40F00AD4BC7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7E10A0003100000000AA0003;
+			remoteInfo = SafaWatch;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -36,6 +45,17 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		7E10A0003100000000AA000D /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				7E10A0003100000000AA000C /* SafaWatch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -44,6 +64,7 @@
 		7DD49EA63071B3560070EB0C /* SafaWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SafaWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		7DD49EA83071B3560070EB0C /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		7DD49EAA3071B3570070EB0C /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		7E10A0003100000000AA0000 /* SafaWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SafaWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -73,6 +94,17 @@
 			);
 			target = 7DD49EA53071B3560070EB0C /* SafaWidgetsExtension */;
 		};
+		7E10A0003100000000AA0002 /* Exceptions for "NamazVakitleri" folder in "SafaWatch" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				DisplayFormat.swift,
+				KerahatTimes.swift,
+				Localization.swift,
+				Prayercalculation.swift,
+				Prayerwidgetdata.swift,
+			);
+			target = 7E10A0003100000000AA0003 /* SafaWatch */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -81,6 +113,7 @@
 			exceptions = (
 				7D0DA98E3042BAED00DC4535 /* Exceptions for "NamazVakitleri" folder in "NamazVakitleri" target */,
 				7DD49EBF3071B3BD0070EB0C /* Exceptions for "NamazVakitleri" folder in "SafaWidgetsExtension" target */,
+				7E10A0003100000000AA0002 /* Exceptions for "NamazVakitleri" folder in "SafaWatch" target */,
 			);
 			path = NamazVakitleri;
 			sourceTree = "<group>";
@@ -91,6 +124,11 @@
 				7DD49EBD3071B3570070EB0C /* Exceptions for "SafaWidgets" folder in "SafaWidgetsExtension" target */,
 			);
 			path = SafaWidgets;
+			sourceTree = "<group>";
+		};
+		7E10A0003100000000AA0001 /* SafaWatch */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = SafaWatch;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -114,6 +152,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		7E10A0003100000000AA0005 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7E10A0003100000000AA000B /* Adhan in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -123,6 +169,7 @@
 				7D5C18713072DE11000E8CA4 /* SafaWidgetsExtension.entitlements */,
 				7D340977303EA40F00AD4BC7 /* NamazVakitleri */,
 				7DD49EAC3071B3570070EB0C /* SafaWidgets */,
+				7E10A0003100000000AA0001 /* SafaWatch */,
 				7DD49EA73071B3560070EB0C /* Frameworks */,
 				7D340976303EA40F00AD4BC7 /* Products */,
 			);
@@ -133,6 +180,7 @@
 			children = (
 				7D340975303EA40F00AD4BC7 /* NamazVakitleri.app */,
 				7DD49EA63071B3560070EB0C /* SafaWidgetsExtension.appex */,
+				7E10A0003100000000AA0000 /* SafaWatch.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -157,11 +205,13 @@
 				7D340972303EA40F00AD4BC7 /* Frameworks */,
 				7D340973303EA40F00AD4BC7 /* Resources */,
 				7DD49EB93071B3570070EB0C /* Embed Foundation Extensions */,
+				7E10A0003100000000AA000D /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				7DD49EB73071B3570070EB0C /* PBXTargetDependency */,
+				7E10A0003100000000AA000F /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				7D340977303EA40F00AD4BC7 /* NamazVakitleri */,
@@ -197,6 +247,29 @@
 			productReference = 7DD49EA63071B3560070EB0C /* SafaWidgetsExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		7E10A0003100000000AA0003 /* SafaWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7E10A0003100000000AA0007 /* Build configuration list for PBXNativeTarget "SafaWatch" */;
+			buildPhases = (
+				7E10A0003100000000AA0004 /* Sources */,
+				7E10A0003100000000AA0005 /* Frameworks */,
+				7E10A0003100000000AA0006 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				7E10A0003100000000AA0001 /* SafaWatch */,
+			);
+			name = SafaWatch;
+			packageProductDependencies = (
+				7E10A0003100000000AA000A /* Adhan */,
+			);
+			productName = SafaWatch;
+			productReference = 7E10A0003100000000AA0000 /* SafaWatch.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -211,6 +284,9 @@
 						CreatedOnToolsVersion = 26.6;
 					};
 					7DD49EA53071B3560070EB0C = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					7E10A0003100000000AA0003 = {
 						CreatedOnToolsVersion = 26.6;
 					};
 				};
@@ -238,6 +314,7 @@
 			targets = (
 				7D340974303EA40F00AD4BC7 /* NamazVakitleri */,
 				7DD49EA53071B3560070EB0C /* SafaWidgetsExtension */,
+				7E10A0003100000000AA0003 /* SafaWatch */,
 			);
 		};
 /* End PBXProject section */
@@ -251,6 +328,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		7DD49EA43071B3560070EB0C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7E10A0003100000000AA0006 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -274,6 +358,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		7E10A0003100000000AA0004 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -281,6 +372,11 @@
 			isa = PBXTargetDependency;
 			target = 7DD49EA53071B3560070EB0C /* SafaWidgetsExtension */;
 			targetProxy = 7DD49EB63071B3570070EB0C /* PBXContainerItemProxy */;
+		};
+		7E10A0003100000000AA000F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7E10A0003100000000AA0003 /* SafaWatch */;
+			targetProxy = 7E10A0003100000000AA000E /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -536,6 +632,68 @@
 			};
 			name = Release;
 		};
+		7E10A0003100000000AA0008 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Safa;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.kocaksefa.NamazVakitleri;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = NO;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kocaksefa.NamazVakitleri.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Debug;
+		};
+		7E10A0003100000000AA0009 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Safa;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.kocaksefa.NamazVakitleri;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = NO;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kocaksefa.NamazVakitleri.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -562,6 +720,15 @@
 			buildConfigurations = (
 				7DD49EBA3071B3570070EB0C /* Debug */,
 				7DD49EBB3071B3570070EB0C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7E10A0003100000000AA0007 /* Build configuration list for PBXNativeTarget "SafaWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7E10A0003100000000AA0008 /* Debug */,
+				7E10A0003100000000AA0009 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -597,6 +764,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 7D42D78830461D4D00FC3531 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
 			productName = GoogleMobileAds;
+		};
+		7E10A0003100000000AA000A /* Adhan */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7D340983303EA4E800AD4BC7 /* XCRemoteSwiftPackageReference "adhan-swift" */;
+			productName = Adhan;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

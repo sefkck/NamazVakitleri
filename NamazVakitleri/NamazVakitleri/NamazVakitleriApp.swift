@@ -17,6 +17,8 @@ struct NamazVakitleriApp: App {
         NotificationManager.shared.prepare()
         // Arka plan görevi de açılış bitmeden kaydedilmeli (Apple kuralı).
         BackgroundRefresh.register()
+        // Apple Watch'a konum ve ayarları gönder.
+        WatchSync.shared.activate()
         #if DEBUG
         if CommandLine.arguments.contains("-selfTest") {
             SelfTests.runAndExit()

@@ -30,6 +30,8 @@ struct WelcomeOnboardingView: View {
                         } label: {
                             Text(lang.displayName)
                                 .font(AppTheme.body(13, weight: .semibold))
+                                .lineLimit(1)
+                                .fixedSize()
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 7)
                                 .foregroundColor(isSelected ? .white : AppTheme.textPrimary(colorScheme))

@@ -5,6 +5,14 @@ import SwiftUI
 /// Yakındaki Camiler ve Ayarlar'ı bir liste halinde topluyor - iOS'un
 /// adı değiştirilemeyen otomatik "More" sekmesine hiç ihtiyaç kalmıyor.
 struct MainTabView: View {
+    static var hideAdsForScreenshots: Bool {
+        #if DEBUG
+        return UserDefaults.standard.bool(forKey: "uiHideAds")
+        #else
+        return false
+        #endif
+    }
+
     @Environment(\.colorScheme) private var colorScheme
     @State private var selectedTab: AppTab
     @ObservedObject private var notificationManager = NotificationManager.shared
@@ -71,10 +79,13 @@ struct MainTabView: View {
             .tint(AppTheme.accent)
 
             // Tüm sekmelerin üstünde sabit reklam paneli
-            AdBannerView()
-                .frame(height: 50)
-                .frame(maxWidth: .infinity)
-                .background(AppTheme.background(colorScheme))
+            // (App Store ekran resimleri için test sürümünde -uiHideAds YES ile gizlenir).
+            if !Self.hideAdsForScreenshots {
+                AdBannerView()
+                    .frame(height: 50)
+                    .frame(maxWidth: .infinity)
+                    .background(AppTheme.background(colorScheme))
+            }
         }
         .background(AppTheme.background(colorScheme).ignoresSafeArea(edges: .bottom))
         .onReceive(notificationManager.$requestedTab) { tab in

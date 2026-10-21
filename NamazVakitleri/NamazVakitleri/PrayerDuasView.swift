@@ -47,27 +47,27 @@ struct PrayerDuasView: View {
                   meal: "Rabbim, hesabın görüleceği gün beni, anne babamı ve mü'minleri bağışla.",
                   quranAyahs: [1791]),
         PrayerDua(title: "Kunut Duası 1",
-                  arabic: "اَللّٰهُمَّ إِنَّا نَسْتَعِينُكَ وَنَسْتَغْفِرُكَ وَنُؤْمِنُ بِكَ وَنَتَوَكَّلُ عَلَيْكَ",
-                  okunus: "Allâhümme innâ nesteînüke ve nestağfiruke ve nü'minü bike ve netevekkelü aleyk.",
-                  meal: "Allah'ım, senden yardım ister, senden bağışlanma dileriz. Sana inanır, sana güveniriz."),
+                  arabic: "اَللّٰهُمَّ إِنَّا نَسْتَعِينُكَ وَنَسْتَغْفِرُكَ وَنَسْتَهْدِيكَ وَنُؤْمِنُ بِكَ وَنَتُوبُ إِلَيْكَ وَنَتَوَكَّلُ عَلَيْكَ وَنُثْنِي عَلَيْكَ الْخَيْرَ كُلَّهُ نَشْكُرُكَ وَلَا نَكْفُرُكَ وَنَخْلَعُ وَنَتْرُكُ مَنْ يَفْجُرُكَ",
+                  okunus: "Allâhümme innâ nesteînüke ve nestağfiruke ve nestehdîk. Ve nü'minü bike ve netûbü ileyk. Ve netevekkelü aleyke ve nüsnî aleykel-hayra küllehû neşkürük. Ve lâ nekfürüke ve nahleu ve netrükü men yefcürük.",
+                  meal: "Allah'ım! Senden yardım isteriz, günahlarımızı bağışlamanı isteriz, razı olduğun şeylere hidayet etmeni isteriz. Sana inanırız, sana tövbe ederiz. Sana güveniriz. Bütün hayırları sana yöneltir ve seni överiz. Sana şükrederiz, hiçbir nimetini inkâr etmeyiz. Nimetlerini inkâr edeni ve sana karşı geleni bırakır ve ondan uzaklaşırız."),
         PrayerDua(title: "Kunut Duası 2",
                   arabic: "اَللّٰهُمَّ إِيَّاكَ نَعْبُدُ وَلَكَ نُصَلِّي وَنَسْجُدُ وَإِلَيْكَ نَسْعٰى وَنَحْفِدُ نَرْجُو رَحْمَتَكَ وَنَخْشٰى عَذَابَكَ إِنَّ عَذَابَكَ بِالْكُفَّارِ مُلْحِقٌ",
                   okunus: "Allâhümme iyyâke na'büdü ve leke nusallî ve nescüdü ve ileyke nes'â ve nahfidü nercû rahmeteke ve nahşâ azâbeke inne azâbeke bilküffâri mülhik.",
                   meal: "Allah'ım, yalnız sana ibadet eder, senin için namaz kılar ve secde ederiz. Yalnız sana koşar ve sana yaklaştırıcı işler yaparız. Rahmetini umar, azabından korkarız. Şüphesiz senin azabın kâfirlere ulaşır."),
-        PrayerDua(title: "Ayete'l Kürsi",
-                  arabic: "اللّٰهُ لَا إِلٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ",
-                  okunus: "Allâhü lâ ilâhe illâ hüvel hayyül kayyûm, lâ te'huzühû sinetün ve lâ nevm.",
-                  meal: "Allah, kendisinden başka ilah olmayandır. O, diridir, her şeyin varlığı O'na dayanır. O'nu ne bir uyuklama tutabilir ne de bir uyku.",
+        PrayerDua(title: "Âyetü'l-Kürsî (Bakara 255)",
+                  arabic: "ٱللَّهُ لَآ إِلَٰهَ إِلَّا هُوَ ٱلْحَىُّ ٱلْقَيُّومُ ۚ لَا تَأْخُذُهُۥ سِنَةٌۭ وَلَا نَوْمٌۭ ۚ لَّهُۥ مَا فِى ٱلسَّمَٰوَٰتِ وَمَا فِى ٱلْأَرْضِ ۗ مَن ذَا ٱلَّذِى يَشْفَعُ عِندَهُۥٓ إِلَّا بِإِذْنِهِۦ ۚ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ ۖ وَلَا يُحِيطُونَ بِشَىْءٍۢ مِّنْ عِلْمِهِۦٓ إِلَّا بِمَا شَآءَ ۚ وَسِعَ كُرْسِيُّهُ ٱلسَّمَٰوَٰتِ وَٱلْأَرْضَ ۖ وَلَا يَـُٔودُهُۥ حِفْظُهُمَا ۚ وَهُوَ ٱلْعَلِىُّ ٱلْعَظِيمُ",
+                  okunus: "Allâhü lâ ilâhe illâ hüvel hayyül kayyûm, lâ te'huzühû sinetün ve lâ nevm, lehû mâ fis-semâvâti ve mâ fil'ard, men zellezî yeşfeu indehû illâ bi'iznih, ya'lemü mâ beyne eydîhim ve mâ halfehüm, ve lâ yuhîtûne bi şey'in min ilmihî illâ bi mâ şâe, vesia kürsiyyühüs-semâvâti vel'ard, ve lâ yeûdühû hıfzuhumâ ve hüvel aliyyül azîm.",
+                  meal: "Allah, O'ndan başka tanrı yoktur; O, hayydir, kayyumdur. Kendisine ne uyku gelir ne de uyuklama. Göklerde ve yerdekilerin hepsi O'nundur. İzni olmadan O'nun katında kim şefaat edebilir? O, kullarının yaptıklarını ve yapacaklarını bilir. (O'na hiçbir şey gizli kalmaz.) O'nun bildirdiklerinin dışında insanlar O'nun ilminden hiçbir şeyi tam olarak bilemezler. O'nun kürsüsü gökleri ve yeri içine alır, onları koruyup gözetmek kendisine zor gelmez. O, yücedir, büyüktür.",
                   quranAyahs: [262]),
-        PrayerDua(title: "Rabbişrahli",
-                  arabic: "رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي",
-                  okunus: "Rabbişrahlî sadrî ve yessirlî emrî.",
-                  meal: "Rabbim, göğsümü genişlet ve işimi bana kolaylaştır.",
-                  quranAyahs: [2373, 2374]),
-        PrayerDua(title: "Amenerrasulü (Bakara 285-286)",
-                  arabic: "آمَنَ الرَّسُولُ بِمَا أُنْزِلَ إِلَيْهِ مِنْ رَبِّهِ وَالْمُؤْمِنُونَ",
-                  okunus: "Âmener rasûlü bimâ ünzile ileyhi mir rabbihî vel mü'minûn.",
-                  meal: "Peygamber, Rabbinden kendisine indirilene iman etti, mü'minler de iman ettiler.",
+        PrayerDua(title: "Rabbişrahlî (Tâhâ 25-28)",
+                  arabic: "رَبِّ ٱشْرَحْ لِى صَدْرِى وَيَسِّرْ لِىٓ أَمْرِى وَٱحْلُلْ عُقْدَةًۭ مِّن لِّسَانِى يَفْقَهُوا۟ قَوْلِى",
+                  okunus: "Rabbişrah lî sadrî. Ve yessir lî emrî. Vahlul ukdeten min lisânî. Yefkahû kavlî.",
+                  meal: "Rabbim! Yüreğime genişlik ver. İşimi bana kolaylaştır. Dilimden (şu) bağı çöz. Ki sözümü anlasınlar.",
+                  quranAyahs: [2373, 2374, 2375, 2376]),
+        PrayerDua(title: "Âmenerrasûlü (Bakara 285-286)",
+                  arabic: "ءَامَنَ ٱلرَّسُولُ بِمَآ أُنزِلَ إِلَيْهِ مِن رَّبِّهِۦ وَٱلْمُؤْمِنُونَ ۚ كُلٌّ ءَامَنَ بِٱللَّهِ وَمَلَٰٓئِكَتِهِۦ وَكُتُبِهِۦ وَرُسُلِهِۦ لَا نُفَرِّقُ بَيْنَ أَحَدٍۢ مِّن رُّسُلِهِۦ ۚ وَقَالُوا۟ سَمِعْنَا وَأَطَعْنَا ۖ غُفْرَانَكَ رَبَّنَا وَإِلَيْكَ ٱلْمَصِيرُ لَا يُكَلِّفُ ٱللَّهُ نَفْسًا إِلَّا وُسْعَهَا ۚ لَهَا مَا كَسَبَتْ وَعَلَيْهَا مَا ٱكْتَسَبَتْ ۗ رَبَّنَا لَا تُؤَاخِذْنَآ إِن نَّسِينَآ أَوْ أَخْطَأْنَا ۚ رَبَّنَا وَلَا تَحْمِلْ عَلَيْنَآ إِصْرًۭا كَمَا حَمَلْتَهُۥ عَلَى ٱلَّذِينَ مِن قَبْلِنَا ۚ رَبَّنَا وَلَا تُحَمِّلْنَا مَا لَا طَاقَةَ لَنَا بِهِۦ ۖ وَٱعْفُ عَنَّا وَٱغْفِرْ لَنَا وَٱرْحَمْنَآ ۚ أَنتَ مَوْلَىٰنَا فَٱنصُرْنَا عَلَى ٱلْقَوْمِ ٱلْكَٰفِرِينَ",
+                  okunus: "Âmenerrasûlü bimâ ünzile ileyhi min rabbihî vel mü'minûn, küllün âmene billâhi ve melâiketihî ve kütübihî ve rusülih, lâ nüferriku beyne ehadin min rusülih, ve kâlû semi'nâ ve eta'nâ gufrâneke rabbenâ ve ileykel masîr. Lâ yükellifullâhü nefsen illâ vüs'ahâ, lehâ mâ kesebet ve aleyhâ mektesebet, rabbenâ lâ tüâhıznâ in nesînâ ev ahta'nâ, rabbenâ ve lâ tahmil aleynâ ısran kemâ hameltehû alellezîne min kablinâ, rabbenâ ve lâ tühammilnâ mâ lâ tâkate lenâ bih, va'fü annâ, vağfir lenâ, verhamnâ, ente mevlânâ fensurnâ alel kavmil kâfirîn.",
+                  meal: "Peygamber, Rabbi tarafından kendisine indirilene iman etti, müminler de (iman ettiler). Her biri Allah'a, meleklerine, kitaplarına, peygamberlerine iman ettiler. \"Allah'ın peygamberlerinden hiçbiri arasında ayırım yapmayız. İşittik, itaat ettik. Ey Rabbimiz, affına sığındık! Dönüş sanadır\" dediler. Allah her şahsı, ancak gücünün yettiği ölçüde mükellef kılar. Herkesin kazandığı (hayır) kendine, yapacağı (şer) de kendinedir. Rabbimiz! Unutursak veya hataya düşersek bizi sorumlu tutma. Ey Rabbimiz! Bizden öncekilere yüklediğin gibi bize de ağır bir yük yükleme. Ey Rabbimiz! Bize gücümüzün yetmediği işler de yükleme! Bizi affet! Bizi bağışla.",
                   quranAyahs: [292, 293])
     ]
 
@@ -110,10 +110,13 @@ struct PrayerDuasView: View {
                         .multilineTextAlignment(.trailing)
                         .environment(\.layoutDirection, .rightToLeft)
                         .foregroundColor(AppTheme.textPrimary(colorScheme))
-                    Text(loc.t("dua\(duaNumber(dua))_trans", fallback: dua.okunus))
-                        .font(.footnote)
-                        .italic()
-                        .foregroundStyle(AppTheme.textSecondary(colorScheme))
+                    // Arapça arayüzde Latin harfli okunuş gereksiz.
+                    if loc.language != .arabic {
+                        Text(loc.t("dua\(duaNumber(dua))_trans", fallback: dua.okunus))
+                            .font(.footnote)
+                            .italic()
+                            .foregroundStyle(AppTheme.textSecondary(colorScheme))
+                    }
                     Text(loc.t("dua\(duaNumber(dua))_meal", fallback: dua.meal))
                         .font(.subheadline)
                         .foregroundStyle(AppTheme.textSecondary(colorScheme))

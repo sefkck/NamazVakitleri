@@ -42,7 +42,7 @@ final class PrayerTimeViewModel: ObservableObject {
 
     private func recalculate() {
         guard let coordinate = lastCoordinate else { return }
-        let now = Date()
+        let now = DebugClock.now
         prayerTimes = computeTimes(for: now, coordinate: coordinate)
         computedDayKey = Self.dayKey(now, timeZone: timeZone)
         tomorrowTimes = nil
@@ -65,28 +65,28 @@ final class PrayerTimeViewModel: ObservableObject {
         // konumunkinden çok farklıysa (ör. İstanbul saatindeki telefon, Sidney
         // konumu) İmsak hiçbir zaman "bugün" çıkmıyor, recalculate ↔ tick
         // sonsuz döngüye girip uygulama çöküyordu. Artık takvim gününe bakılıyor.
-        if Self.dayKey(Date(), timeZone: timeZone) != computedDayKey {
+        if Self.dayKey(DebugClock.now, timeZone: timeZone) != computedDayKey {
             recalculate()
             return
         }
 
-        if let next = times.nextPrayer() {
+        if let next = times.nextPrayer(at: DebugClock.now) {
             nextPrayerName = displayName(for: next)
             let nextTime = times.time(for: next)
             nextPrayerDate = nextTime
-            let diff = max(0, nextTime.timeIntervalSinceNow)
+            let diff = max(0, nextTime.timeIntervalSince(DebugClock.now))
             remainingTimeText = format(diff)
         } else {
             // Bugünün son namazı (Yatsı) geçti - yarının İmsak'ına say
             if tomorrowTimes == nil,
-               let tomorrow = calendar.date(byAdding: .day, value: 1, to: Date()),
+               let tomorrow = calendar.date(byAdding: .day, value: 1, to: DebugClock.now),
                let coordinate = lastCoordinate {
                 tomorrowTimes = computeTimes(for: tomorrow, coordinate: coordinate)
             }
             if let tomorrowTimes {
                 nextPrayerName = "Yarın İmsak"
                 nextPrayerDate = tomorrowTimes.fajr
-                let diff = max(0, tomorrowTimes.fajr.timeIntervalSinceNow)
+                let diff = max(0, tomorrowTimes.fajr.timeIntervalSince(DebugClock.now))
                 remainingTimeText = format(diff)
             } else {
                 nextPrayerName = "Yatsı sonrası"

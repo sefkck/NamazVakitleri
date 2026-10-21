@@ -48,10 +48,50 @@ struct PrayerTrackingView: View {
                 }
             }
             .onReceive(NotificationCenter.default.publisher(for: PrayerTracker.didChange)) { _ in refresh += 1 }
+            .safeAreaInset(edge: .bottom) { undoBar }
         }
     }
 
     // MARK: - Bugün
+
+    /// Yanlış dokunuşu geri almak için ~4 sn görünen "Sabah kılındı · Geri Al" çubuğu.
+    private struct UndoInfo: Equatable { let name: String; let dayKey: String; let nowPrayed: Bool; let id: Int }
+    @State private var undo: UndoInfo?
+
+    private func showUndo(name: String, dayKey: String, nowPrayed: Bool) {
+        let info = UndoInfo(name: name, dayKey: dayKey, nowPrayed: nowPrayed, id: (undo?.id ?? 0) + 1)
+        withAnimation { undo = info }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+            if undo == info { withAnimation { undo = nil } }
+        }
+    }
+
+    @ViewBuilder
+    private var undoBar: some View {
+        if let u = undo {
+            HStack(spacing: 12) {
+                Text(loc.tf(u.nowPrayed ? "tracking_marked" : "tracking_unmarked",
+                            u.nowPrayed ? "%@ kılındı olarak işaretlendi" : "%@ işareti kaldırıldı",
+                            PrayerTracker.namazName(u.name)))
+                    .font(AppTheme.body(14, weight: .medium))
+                    .foregroundColor(.white)
+                    .lineLimit(2)
+                Spacer(minLength: 4)
+                Button(loc.t("common_undo", fallback: "Geri Al")) {
+                    PrayerTracker.setPrayed(!u.nowPrayed, name: u.name, dayKey: u.dayKey)
+                    withAnimation { undo = nil }
+                }
+                .font(AppTheme.body(14, weight: .bold))
+                .foregroundColor(AppTheme.gold)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Capsule().fill(Color.black.opacity(0.85)))
+            .padding(.horizontal, 16)
+            .padding(.bottom, 12)
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+        }
+    }
 
     private var todaySection: some View {
         let key = PrayerTracker.dayKey(Date(), timeZone: timeZone)
@@ -66,6 +106,7 @@ struct PrayerTrackingView: View {
                 Button {
                     PrayerTracker.setPrayed(!prayed, name: item.name, dayKey: key)
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    showUndo(name: item.name, dayKey: key, nowPrayed: !prayed)
                 } label: {
                     HStack {
                         Image(systemName: prayed ? "checkmark.circle.fill" : "circle")

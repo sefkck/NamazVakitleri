@@ -157,6 +157,7 @@ final class NotificationManager: NSObject, ObservableObject, UNUserNotificationC
         do {
             previewPlayer = try AVAudioPlayer(contentsOf: url)
             previewPlayer?.delegate = self
+            if DebugMute.isOn { previewPlayer?.volume = 0 }
             previewPlayer?.play()
             currentlyPlayingFileName = fileName
         } catch {

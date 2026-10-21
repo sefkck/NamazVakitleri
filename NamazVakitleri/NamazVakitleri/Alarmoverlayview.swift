@@ -103,6 +103,7 @@ struct AlarmOverlayView: View {
     }
 
     private func fireBeat() {
+        guard !DebugMute.isOn else { return }
         AudioServicesPlayAlertSound(SystemSoundID(1005))
         UINotificationFeedbackGenerator().notificationOccurred(.warning)
     }

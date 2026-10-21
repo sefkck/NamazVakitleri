@@ -25,6 +25,7 @@ struct SettingsView: View {
     @AppStorage(NotificationManager.religiousDaysEnabledKey) private var religiousDaysEnabled: Bool = true
     @AppStorage(NotificationManager.sahurEnabledKey) private var sahurEnabled: Bool = true
     @State private var methodRefresh = 0
+    @ObservedObject private var audioStore = QuranAudioStore.shared
     @AppStorage("showKerahat") private var showKerahat: Bool = true
     @AppStorage(NotificationManager.sahurMinutesKey) private var sahurMinutes: Int = 45
 
@@ -372,7 +373,7 @@ struct SettingsView: View {
     }
 
     private func kerahatTime(_ date: Date) -> String {
-        DisplayFormat.time(date, timeZone: NotificationManager.lastKnownLocation()?.1 ?? .current, locale: loc.locale, compact: true)
+        DisplayFormat.time(date, timeZone: NotificationManager.lastKnownLocation()?.1 ?? .current, locale: loc.locale)
     }
 
     private var adjustPage: some View {
@@ -399,7 +400,13 @@ struct SettingsView: View {
             } header: {
                 Text(loc.t("settings_adjust", fallback: "Vakit İnce Ayarı"))
             } footer: {
-                Text(loc.t("settings_adjust_footer", fallback: "Vakitler Diyanet yöntemiyle hesaplanır ve resmi tabloyla çoğu gün tam tutar (en fazla 1 dakika fark). Semtindeki camiye göre burada dakika ayarı yapabilirsin."))
+                let _ = methodRefresh
+                if PrayerCalculation.selectedMethod == .diyanet {
+                    Text(loc.t("settings_adjust_footer", fallback: "Vakitler Diyanet yöntemiyle hesaplanır ve resmi tabloyla çoğu gün tam tutar (en fazla 1 dakika fark). Semtindeki camiye göre burada dakika ayarı yapabilirsin."))
+                } else {
+                    Text(loc.tf("settings_adjust_footer_other", "Vakitler %@ yöntemiyle hesaplanır. Gittiğin caminin takvimine göre burada dakika ayarı yapabilirsin.",
+                                loc.t(PrayerCalculation.selectedMethod.titleKey, fallback: PrayerCalculation.selectedMethod.turkishTitle)))
+                }
             }
         }
         .navigationTitle(loc.t("settings_adjust", fallback: "Vakit İnce Ayarı"))
@@ -525,13 +532,29 @@ struct SettingsView: View {
                 Text(Self.appVersionText).foregroundStyle(.secondary)
             }
 
+            Section(loc.t("audio_storage_title", fallback: "İndirilen Hafız Sesleri")) {
+                let _ = audioStore.revision
+                HStack {
+                    Text(loc.t("audio_storage_size", fallback: "Kapladığı yer"))
+                    Spacer()
+                    Text(String(format: "%.1f MB", Double(audioStore.totalBytes) / 1_000_000))
+                        .foregroundStyle(.secondary)
+                }
+                if audioStore.totalBytes > 0 {
+                    Button(loc.t("audio_delete_all", fallback: "Tümünü Sil"), role: .destructive) { audioStore.deleteAll() }
+                }
+            }
+
             Section(loc.t("sources_title", fallback: "Kaynaklar")) {
                 sourceRow(loc.t("sources_quran_text", fallback: "Kur'an metni"), "Tanzil Project (tanzil.net) · alquran.cloud")
                 if let meal = Self.mealSourceName(loc.language) {
                     sourceRow(loc.t("sources_meal", fallback: "Türkçe meal"), "\(meal) · alquran.cloud")
                 }
                 sourceRow(loc.t("sources_audio", fallback: "Hafız sesi"), "\(RecitationPlayer.localizedReciterName) · Islamic Network (alquran.cloud)")
-                sourceRow(loc.t("sources_times", fallback: "Namaz vakitleri"), loc.t("sources_times_value", fallback: "Adhan kütüphanesi, Türkiye (Diyanet) hesaplama yöntemi"))
+                sourceRow(loc.t("sources_times", fallback: "Namaz vakitleri"),
+                          PrayerCalculation.selectedMethod == .diyanet
+                            ? loc.t("sources_times_value", fallback: "Adhan kütüphanesi, Türkiye (Diyanet) hesaplama yöntemi")
+                            : "Adhan · " + loc.t(PrayerCalculation.selectedMethod.titleKey, fallback: PrayerCalculation.selectedMethod.turkishTitle))
                 Text(loc.t("sources_note", fallback: "Hafız kayıtlarının hakları okuyucuya aittir. Ses ücretsiz sunulur."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -623,6 +646,16 @@ private struct LocationSettingsPage: View {
 
     var body: some View {
         Form {
+            Section {
+                HStack {
+                    Image(systemName: "mappin.circle.fill").foregroundColor(AppTheme.accent)
+                    Text(loc.t("settings_current_place", fallback: "Şu anki konum"))
+                    Spacer()
+                    Text(UserDefaults.standard.string(forKey: "lastKnownCityName") ?? "—")
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.trailing)
+                }
+            }
             Section(loc.t("settings_general")) {
                 Toggle(isOn: $useManualLocation) {
                     Label {

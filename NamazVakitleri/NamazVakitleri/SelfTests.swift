@@ -419,7 +419,7 @@ enum SelfTests {
                        "recitation_error", "recitation_error_title", "recitation_from_ayah", "recitation_reciter",
                        "recitation_now", "recitation_pause", "sources_title", "sources_note",
                        "zikir_reset_confirm_title", "zikir_reset_confirm_body", "zikir_mode_tesbihat",
-                       "tesbih_subhanallah", "tesbih_elhamdulillah", "tesbih_allahuekber", "tesbih_step", "privacy_read_web", "lock_widget_name", "lock_widget_desc", "kerahat_now_title", "kerahat_israk", "kerahat_istiva", "kerahat_isfirar", "settings_kerahat", "settings_kerahat_footer", "siri_no_location", "siri_no_times", "siri_next_answer", "siri_remaining_hm", "siri_remaining_m", "siri_kerahat_now", "siri_kerahat_next", "siri_kerahat_none", "qibla_kaaba", "qibla_you", "qibla_map_info", "qibla_map_hint", "qibla_map_near", "qibla_map_whole", "qibla_map_title", "qibla_map_button", "home_alarm_toast_on", "home_alarm_toast_off", "imsakiye_ramadan_year", "settings_kerahat_page", "kerahat_today", "common_on", "common_off", "qibla_map_north", "qibla_map_hint_north", "prayer_sabah", "prayer_vitir", "qibla_map_info2", "method_title", "method_diyanet", "method_isna", "method_mwl", "method_ummAlQura", "method_footer"]
+                       "tesbih_subhanallah", "tesbih_elhamdulillah", "tesbih_allahuekber", "tesbih_step", "privacy_read_web", "lock_widget_name", "lock_widget_desc", "kerahat_now_title", "kerahat_israk", "kerahat_istiva", "kerahat_isfirar", "settings_kerahat", "settings_kerahat_footer", "siri_no_location", "siri_no_times", "siri_next_answer", "siri_remaining_hm", "siri_remaining_m", "siri_kerahat_now", "siri_kerahat_next", "siri_kerahat_none", "qibla_kaaba", "qibla_you", "qibla_map_info", "qibla_map_hint", "qibla_map_near", "qibla_map_whole", "qibla_map_title", "qibla_map_button", "home_alarm_toast_on", "home_alarm_toast_off", "imsakiye_ramadan_year", "settings_kerahat_page", "kerahat_today", "common_on", "common_off", "qibla_map_north", "qibla_map_hint_north", "prayer_sabah", "prayer_vitir", "qibla_map_info2", "watch_open_phone", "settings_adjust_footer_other", "tracking_marked", "tracking_unmarked", "common_undo", "settings_current_place", "watch_qibla_hint", "audio_download", "audio_downloaded", "audio_downloading", "audio_delete_title", "audio_delete", "audio_delete_body", "audio_download_error", "audio_download_error_title", "audio_storage_title", "audio_storage_size", "audio_delete_all", "method_title", "method_diyanet", "method_isna", "method_mwl", "method_ummAlQura", "method_footer"]
         let missing = newKeys.filter { key in
             guard let e = LocalizationStrings.table[key] else { return true }
             return e[.english] == nil || e[.arabic] == nil || e[.german] == nil
@@ -557,7 +557,9 @@ enum SelfTests {
             // Kullanıcının dakika ince ayarı testi etkilemesin.
             let adjKeys = ["fajr", "dhuhr", "asr", "maghrib", "isha"].map { "prayer_manual_adjust_\($0)" }
             let adjBackup = adjKeys.map { ($0, UserDefaults.standard.object(forKey: $0)) }
+                + [(PrayerCalculation.methodKey, UserDefaults.standard.object(forKey: PrayerCalculation.methodKey))]
             adjKeys.forEach { UserDefaults.standard.removeObject(forKey: $0) }
+            UserDefaults.standard.removeObject(forKey: PrayerCalculation.methodKey)   // test her zaman Diyanet ile
             var exact = 0, total = 0, worst = 0.0, misses: [String] = []
             for (lat, lon, day, line) in refs {
                 guard let noon = df.date(from: day + " 12:00"),
@@ -625,6 +627,71 @@ enum SelfTests {
             let longOK = DisplayFormat.longDistance(km: 2400).hasSuffix(DisplayFormat.usesMiles ? "mi" : "km")
             check("T70", "Saat ve mesafe telefon ayarına göre (12/24 saat, mil/km)", timeOK && distOK && longOK,
                   "\(t) | \(m) | 12h:\(DisplayFormat.uses12Hour) mil:\(DisplayFormat.usesMiles)")
+        }
+
+        // T71: Çevrimdışı hafız sesi: indirilen ayet telefondan çalar, silinince internete döner.
+        do {
+            let n = 6236   // Nâs suresinin son ayeti (testte sahte dosya)
+            let store = QuranAudioStore.shared
+            let hadBefore = QuranAudioStore.hasLocal(n)
+            let local = QuranAudioStore.localURL(globalAyahNumber: n)
+            if !hadBefore { FileManager.default.createFile(atPath: local.path, contents: Data([0x49, 0x44, 0x33])) }
+            let usesLocal = RecitationPlayer.audioURL(globalAyahNumber: n)?.isFileURL == true
+            let downloaded = store.isDownloaded([n])
+            let backupExcluded = (try? QuranAudioStore.folder.resourceValues(forKeys: [.isExcludedFromBackupKey]).isExcludedFromBackup) == true
+            if !hadBefore { store.delete([n]) }
+            let backToRemote = hadBefore || RecitationPlayer.audioURL(globalAyahNumber: n)?.isFileURL == false
+            check("T71", "Çevrimdışı ses: indirilen ayet telefondan çalar, silinince internetten; klasör iCloud yedeğinde değil",
+                  usesLocal && downloaded && backToRemote && backupExcluded && !store.isDownloaded([]))
+        }
+
+        // T72: Test sürümü simülatörde sessiz; gerçek telefonda ses açık.
+        do {
+            #if targetEnvironment(simulator)
+            let expected = true
+            #else
+            let expected = false
+            #endif
+            check("T72", "Simülatörde test sesi kapalı, telefonda açık", DebugMute.isOn == expected)
+        }
+
+        // T73: Apple Watch'a giden bilgi: konum, saat dilimi, dil, hesaplama yöntemi, ince ayarlar.
+        do {
+            let ctx = WatchSync.context()
+            let keys = ["lat", "lon", "tz", "city", "lang", "method", "adj_fajr", "adj_asr", "adj_isha"]
+            let watchEmbedded = Bundle.main.bundleURL.appendingPathComponent("Watch/SafaWatch.app").path
+            // Telefon testi saat uygulaması olmadan derlenir (ücretsiz hesap saat istemeden imzalamıyor).
+            #if targetEnvironment(simulator)
+            let embeddedOK = FileManager.default.fileExists(atPath: watchEmbedded)
+            #else
+            let embeddedOK = true
+            #endif
+            check("T73", "Apple Watch: iPhone saate konum/dil/yöntem gönderir; saat uygulaması paketin içinde (simülatör)",
+                  keys.allSatisfy { ctx[$0] != nil } && embeddedOK,
+                  "eksik: \(keys.filter { ctx[$0] == nil })")
+        }
+
+        // T74: Saat dilimi tahmini: şehir adı/saat dilimi alınamazsa telefon saati değil, boylam kullanılır.
+        do {
+            let ist = TimeZone(identifier: "Europe/Istanbul")!
+            let ny = LocationManager.estimatedTimeZone(longitude: -73.94, device: ist).secondsFromGMT()
+            let tr = LocationManager.estimatedTimeZone(longitude: 28.97, device: ist).identifier
+            let syd = LocationManager.estimatedTimeZone(longitude: 151.1, device: ist).secondsFromGMT()
+            check("T74", "Saat dilimi tahmini: New York -5, İstanbul aynen, Sidney +10 (telefon İstanbul saatinde)",
+                  ny == -5 * 3600 && tr == "Europe/Istanbul" && syd == 10 * 3600, "ny:\(ny/3600) tr:\(tr) syd:\(syd/3600)")
+        }
+
+        // T75: Dualar tam: Kunut 1, Âyetü'l-Kürsî, Rabbişrahlî, Âmenerrasûlü uzun metin + doğru ayetler.
+        do {
+            let duas = PrayerDuasView().duas
+            func dua(_ prefix: String) -> PrayerDua? { duas.first { $0.title.hasPrefix(prefix) } }
+            let kunut = dua("Kunut Duası 1"), kursi = dua("Âyetü'l-Kürsî"), sharh = dua("Rabbişrahlî"), amana = dua("Âmenerrasûlü")
+            let ok = (kunut?.okunus.contains("yefcürük") ?? false)
+                && (kursi?.okunus.contains("aliyyül azîm") ?? false) && kursi?.quranAyahs == [262]
+                && (sharh?.okunus.contains("kavlî") ?? false) && sharh?.quranAyahs == [2373, 2374, 2375, 2376]
+                && (amana?.okunus.contains("kâfirîn") ?? false) && amana?.quranAyahs == [292, 293]
+                && !(ReligiousDays.upcoming(from: Date(timeIntervalSince1970: 1_790_000_000)).contains { ($0.name.hasPrefix("Ramazan Bayramı") || $0.name == "Kadir Gecesi") && $0.note == "Yaklaşık tarih" && $0.date < Date(timeIntervalSince1970: 1_800_000_000) })
+            check("T75", "Dualar tam metin (Kunut 1, Kürsî, Rabbişrahlî, Âmenerrasûlü); Diyanet tarihlerinde 'Yaklaşık' yok", ok)
         }
 
         // T35: Çift Besmele kaldırılıyor (Fâtiha ve Tevbe hariç).
@@ -712,7 +779,7 @@ enum SelfTests {
 
         // T50: Hafız sesi adresleri ve ayet geçişi.
         check("T50", "Hafız sesi: ayet 1 ve 6236 için doğru adres, sınır dışı yok; son ayetten sonra durur",
-              RecitationPlayer.audioURL(globalAyahNumber: 1)?.absoluteString == "https://cdn.islamic.network/quran/audio/128/ar.alafasy/1.mp3"
+              RecitationPlayer.remoteURL(globalAyahNumber: 1)?.absoluteString == "https://cdn.islamic.network/quran/audio/128/ar.alafasy/1.mp3"
               && RecitationPlayer.audioURL(globalAyahNumber: 6236) != nil
               && RecitationPlayer.audioURL(globalAyahNumber: 0) == nil
               && RecitationPlayer.audioURL(globalAyahNumber: 6237) == nil
@@ -835,6 +902,9 @@ enum SelfTests {
               firstTranslit)
 
         // Diyanet yöntemiyle (aladhan method=13) karşılaştırma: ±3 dk.
+        // Kullanıcı başka yöntem seçmiş olsa da test Diyanet ile çalışır; sonra geri yüklenir.
+        let methodBackupT02 = UserDefaults.standard.object(forKey: PrayerCalculation.methodKey)
+        UserDefaults.standard.removeObject(forKey: PrayerCalculation.methodKey)
         let ankara = CLLocationCoordinate2D(latitude: 39.9334, longitude: 32.8597)
         let today = Date()
         guard let ours = PrayerCalculation.times(on: today, coordinate: ankara, timeZone: istanbulTZ) else {
@@ -859,6 +929,7 @@ enum SelfTests {
             return true
         }
         check("T02", "Ankara vakitleri Diyanet yöntemiyle ±3 dk", worst <= 3, String(format: "en büyük fark=%.1f dk", worst))
+        if let m = methodBackupT02 { UserDefaults.standard.set(m, forKey: PrayerCalculation.methodKey) }
     }
 
     private static func fetchJSON(_ urlString: String, _ evaluate: ([String: Any]) -> Bool) -> Bool {

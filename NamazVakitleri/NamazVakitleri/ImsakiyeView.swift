@@ -58,7 +58,10 @@ struct ImsakiyeView: View {
                                         .listRowBackground(isToday(row) ? AppTheme.accentSoft(colorScheme) : AppTheme.cardFill(colorScheme))
                                 }
                             } header: {
-                                Text(rangeText)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(ramadanTitle).font(.subheadline.weight(.semibold))
+                                    Text(rangeText)
+                                }
                             } footer: {
                                 Text(loc.t("imsakiye_footer", fallback: "Tarihler Hicri takvime göre hesaplanır; Diyanet'in ilanı bir gün farklı olabilir. Vakitler bulunduğun konuma göredir."))
                             }
@@ -85,14 +88,28 @@ struct ImsakiyeView: View {
         }
     }
 
+    private var ramadanTitle: String {
+        guard let first = rows.first else { return "" }
+        return loc.tf("imsakiye_ramadan_year", "Ramazan %@", format(first.day.addingTimeInterval(12 * 3600), "yyyy"))
+    }
+
+    /// İkinci satır: şehir ve tarih aralığı (RTL'de karışmasın diye ayrı satır).
     private var rangeText: String {
         guard let first = rows.first, let last = rows.last else { return "" }
         let city = UserDefaults.standard.string(forKey: "lastKnownCityName") ?? ""
-        let ramadan = loc.tf("imsakiye_ramadan_year", "Ramazan %@", format(first.day.addingTimeInterval(12 * 3600), "yyyy"))
-        return "\(ramadan) · \(city) · \(format(first.day.addingTimeInterval(12 * 3600), "d MMM")) – \(format(last.day.addingTimeInterval(12 * 3600), "d MMM yyyy"))"
+        return "\(city) · \(format(first.day.addingTimeInterval(12 * 3600), "d MMM")) – \(format(last.day.addingTimeInterval(12 * 3600), "d MMM yyyy"))"
     }
 
+
+    @Environment(\.dynamicTypeSize) private var typeSize
+
     private var header: some View {
+        Group {
+            if typeSize.isAccessibilitySize { EmptyView() } else { wideHeader }
+        }
+    }
+
+    private var wideHeader: some View {
         HStack(spacing: 4) {
             Text(loc.t("imsakiye_day", fallback: "Gün")).frame(maxWidth: .infinity, alignment: .leading)
             Text(loc.t("imsakiye_sahur", fallback: "İmsak")).frame(width: 52)
@@ -103,7 +120,28 @@ struct ImsakiyeView: View {
         .foregroundStyle(.secondary)
     }
 
+    /// Çok büyük yazıda tablo sığmıyor ("06:1/9"): satır alt alta yazılır.
+    @ViewBuilder
     private func rowView(_ row: Row) -> some View {
+        if typeSize.isAccessibilitySize { stackedRow(row) } else { wideRow(row) }
+    }
+
+    private func stackedRow(_ row: Row) -> some View {
+        let tz = location?.1 ?? .current
+        return VStack(alignment: .leading, spacing: 4) {
+            Text(loc.tf("imsakiye_day_n", "%d. gün", row.id) + " · " + format(row.day.addingTimeInterval(12 * 3600), "d MMM EEE"))
+                .font(.subheadline.weight(isToday(row) ? .bold : .semibold))
+            Text(loc.t("imsakiye_sahur", fallback: "İmsak") + "  " + DisplayFormat.time(row.times.fajr, timeZone: tz))
+            Text(loc.t("imsakiye_iftar", fallback: "İftar") + "  " + DisplayFormat.time(row.times.maghrib, timeZone: tz))
+                .foregroundColor(AppTheme.accent)
+            Text(loc.x("Yatsı") + "  " + DisplayFormat.time(row.times.isha, timeZone: tz))
+        }
+        .font(.body.monospacedDigit())
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+    }
+
+    private func wideRow(_ row: Row) -> some View {
         HStack(spacing: 4) {
             VStack(alignment: .leading, spacing: 1) {
                 Text(loc.tf("imsakiye_day_n", "%d. gün", row.id))

@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import CoreLocation
+import MapKit
 
 /// Kullanıcının konumunu takip eder, şehir adını ve saat dilimini
 /// (timezone) reverse geocoding ile çözer. Konum belirgin şekilde
@@ -91,15 +92,53 @@ final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelega
         errorMessage = nil
         timeoutTimer?.invalidate()
 
+        // Şehir adı ve saat dilimi gelene kadar saat dilimini boylamdan tahmin et:
+        // telefonun saat dilimi konumdan çok farklıysa (yolculuk, test) vakitler
+        // saatlerce kaymasın (New York'ta İstanbul saatiyle 7 saat kayıyordu).
+        timeZone = Self.estimatedTimeZone(longitude: location.coordinate.longitude)
+        resolvePlace(location, attempt: 0)
+    }
+
+    /// Boylama göre tahmini saat dilimi. Telefonun saat dilimi en fazla 1,5 saat
+    /// farklıysa onu kullanır (yaz saati doğru kalır); değilse sabit GMT farkı.
+    static func estimatedTimeZone(longitude: Double, device: TimeZone = .current) -> TimeZone {
+        let estimate = Int((longitude / 15).rounded()) * 3600
+        let deviceOffset = device.secondsFromGMT()
+        if abs(deviceOffset - estimate) <= 5400 { return device }
+        return TimeZone(secondsFromGMT: estimate) ?? device
+    }
+
+    /// Şehir adı + gerçek saat dilimi: CLGeocoder 3 kez denenir (0, 5, 20 sn);
+    /// olmazsa MapKit'in ters adres aramasına geçilir.
+    private func resolvePlace(_ location: CLLocation, attempt: Int) {
         geocoder.reverseGeocodeLocation(location) { [weak self] placemarks, _ in
-            guard let self, let placemark = placemarks?.first else { return }
             DispatchQueue.main.async {
-                // subAdministrativeArea gerçek ilçedir (subLocality mahalle
-                // seviyesindedir, bu yüzden "hâlâ mahalle yazıyor" sorununa
-                // sebep oluyordu).
-                self.cityName = PlaceName.format(placemark) ?? LocalizationManager.shared.t("loc_unknown", fallback: "Bilinmeyen konum")
-                self.timeZone = placemark.timeZone ?? .current
+                guard let self else { return }
+                // Bu arada konum değiştiyse eski cevabı kullanma.
+                guard let c = self.coordinate,
+                      CLLocation(latitude: c.latitude, longitude: c.longitude).distance(from: location) < 1000 else { return }
+                if let placemark = placemarks?.first {
+                    self.cityName = PlaceName.format(placemark) ?? LocalizationManager.shared.t("loc_unknown", fallback: "Bilinmeyen konum")
+                    if let tz = placemark.timeZone { self.timeZone = tz }
+                    return
+                }
+                if attempt < 2 {
+                    let delay: TimeInterval = attempt == 0 ? 5 : 20
+                    DispatchQueue.main.asyncAfter(deadline: .now() + delay) { self.resolvePlace(location, attempt: attempt + 1) }
+                } else {
+                    self.resolveWithMapKit(location)
+                }
             }
+        }
+    }
+
+    private func resolveWithMapKit(_ location: CLLocation) {
+        guard let request = MKReverseGeocodingRequest(location: location) else { return }
+        request.getMapItems { [weak self] items, _ in
+            guard let self, let item = items?.first else { return }
+            if let tz = item.timeZone { self.timeZone = tz }
+            let name = item.addressRepresentations?.cityWithContext ?? item.name
+            if let name, !name.isEmpty { self.cityName = name }
         }
     }
 

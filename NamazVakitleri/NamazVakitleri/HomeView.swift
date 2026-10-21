@@ -107,7 +107,7 @@ struct HomeView: View {
     }
 
     private var greeting: String {
-        let hour = locationCalendar.component(.hour, from: Date())
+        let hour = locationCalendar.component(.hour, from: DebugClock.now)
         switch hour {
         case 4..<11: return loc.t("home_greet_morning", fallback: "Hayırlı Sabahlar")
         case 11..<16: return loc.t("home_greet_day", fallback: "Hayırlı Günler")
@@ -121,7 +121,7 @@ struct HomeView: View {
         formatter.locale = loc.locale
         formatter.dateFormat = "d MMMM yyyy, EEEE"
         formatter.timeZone = effectiveTimeZone
-        return formatter.string(from: Date())
+        return formatter.string(from: DebugClock.now)
     }
 
     private var hijriDateText: String {
@@ -133,11 +133,11 @@ struct HomeView: View {
         formatter.locale = loc.locale
         formatter.timeZone = effectiveTimeZone
         formatter.dateFormat = "d"
-        let day = formatter.string(from: Date())
+        let day = formatter.string(from: DebugClock.now)
         formatter.dateFormat = "MMMM yyyy"
         // Ay adı ve yıl bölünmesin (Almanca "Dschumada I 1448" iki satıra
         // bölünüp "I 1448" tek başına kalıyordu): boşluklar bölünmez boşluk.
-        let monthYear = formatter.string(from: Date()).replacingOccurrences(of: " ", with: "\u{00A0}")
+        let monthYear = formatter.string(from: DebugClock.now).replacingOccurrences(of: " ", with: "\u{00A0}")
         return "\(day) \(monthYear)"
     }
 
@@ -446,7 +446,7 @@ struct HomeView: View {
             .lineLimit(1)
             .minimumScaleFactor(0.8)
             Spacer(minLength: 4)
-            Text(window.end, style: .timer)
+            countdownText(to: window.end)
                 .font(AppTheme.title(15, weight: .semibold))
                 .monospacedDigit()
                 .foregroundColor(AppTheme.accent)
@@ -455,6 +455,18 @@ struct HomeView: View {
         .padding(.vertical, 8)
         .background(RoundedRectangle(cornerRadius: 12).fill(AppTheme.accentSoft(colorScheme)))
         .accessibilityElement(children: .combine)
+    }
+
+    /// Canlı geri sayım. Test saatinde (-uiTestDate) sistem sayacı gerçek saati
+    /// kullandığı için kalan süre test saatine göre yazılır.
+    @ViewBuilder
+    private func countdownText(to date: Date) -> some View {
+        if DebugClock.isOverridden {
+            let t = max(0, Int(date.timeIntervalSince(DebugClock.now)))
+            Text(String(format: "%d:%02d:%02d", t / 3600, (t % 3600) / 60, t % 60))
+        } else {
+            Text(date, style: .timer)
+        }
     }
 
     private func ramadanStrip(_ target: RamadanInfo.FastingTarget) -> some View {
@@ -473,7 +485,7 @@ struct HomeView: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
             Spacer(minLength: 4)
-            Text(date, style: .timer)
+            countdownText(to: date)
                 .font(AppTheme.title(15, weight: .semibold))
                 .monospacedDigit()
                 .foregroundColor(AppTheme.accent)
@@ -557,7 +569,7 @@ struct HomeView: View {
 
     private func prayerRow(prayer: (name: String, icon: String, date: Date), isNext: Bool, layout: HomeLayout) -> some View {
         let isPrayer = NotificationManager.prayerNames.contains(prayer.name)
-        let hasStarted = prayer.date <= Date()
+        let hasStarted = prayer.date <= DebugClock.now
         let isPrayed = prayedToday.contains(prayer.name)
         return HStack(spacing: 6) {
             Image(systemName: prayer.icon)
@@ -699,6 +711,7 @@ struct HomeView: View {
             defaults.set(cityName, forKey: "lastKnownCityName")
         }
         NotificationManager.shared.rescheduleAll(coordinate: coordinate, timeZone: timeZone)
+        WatchSync.shared.push()
 
         // Widget'lar birkaç günlük vakti okuyup doğru günü kendileri seçer.
         PrayerWidgetData.save(
@@ -713,7 +726,7 @@ struct HomeView: View {
     }
 
     private func updateClock() {
-        currentTimeText = DisplayFormat.time(Date(), timeZone: effectiveTimeZone, locale: loc.locale, seconds: true)
+        currentTimeText = DisplayFormat.time(DebugClock.now, timeZone: effectiveTimeZone, locale: loc.locale, seconds: true)
     }
 }
 
