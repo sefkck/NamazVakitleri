@@ -44,19 +44,44 @@ enum PrayerTracker {
         log[dayKey]?.filter { NotificationManager.prayerNames.contains($0) }.count ?? 0
     }
 
+    // MARK: - Özel gün (namazdan muaf günler)
+
+    private static let excusedKey = "excused_days"   // ["2026-10-21", …]
+
+    static func isExcused(dayKey: String) -> Bool {
+        (UserDefaults.standard.stringArray(forKey: excusedKey) ?? []).contains(dayKey)
+    }
+
+    /// Özel gün açılınca o gün seriyi bozmaz ve sayılmaz (kadınlar için).
+    static func setExcused(_ excused: Bool, dayKey: String) {
+        var days = Set(UserDefaults.standard.stringArray(forKey: excusedKey) ?? [])
+        if excused { days.insert(dayKey) } else { days.remove(dayKey) }
+        UserDefaults.standard.set(Array(Array(days).sorted().suffix(400)), forKey: excusedKey)
+        NotificationCenter.default.post(name: didChange, object: nil)
+    }
+
     /// Bugünden geriye, 5 vaktin hepsinin kılındığı ardışık gün sayısı.
-    /// Bugün henüz tamamlanmadıysa dünden saymaya başlar.
+    /// Bugün henüz tamamlanmadıysa dünden saymaya başlar. Özel günler
+    /// atlanır: seriyi bozmaz, seriye eklenmez.
     static func streak(today: Date = Date(), timeZone: TimeZone = .current) -> Int {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = timeZone
         var day = today
-        if prayedCount(dayKey: dayKey(day, timeZone: timeZone)) < 5 {
+        let todayKey = dayKey(day, timeZone: timeZone)
+        if prayedCount(dayKey: todayKey) < 5 || isExcused(dayKey: todayKey) {
             guard let yesterday = calendar.date(byAdding: .day, value: -1, to: day) else { return 0 }
             day = yesterday
         }
         var count = 0
-        while prayedCount(dayKey: dayKey(day, timeZone: timeZone)) >= 5 {
-            count += 1
+        for _ in 0..<400 {
+            let key = dayKey(day, timeZone: timeZone)
+            if isExcused(dayKey: key) {
+                // atla: özel gün seriyi bozmaz
+            } else if prayedCount(dayKey: key) >= 5 {
+                count += 1
+            } else {
+                break
+            }
             guard let previous = calendar.date(byAdding: .day, value: -1, to: day) else { break }
             day = previous
         }
@@ -80,6 +105,9 @@ enum PrayerTracker {
     static var totalKaza: Int {
         kazaNames.reduce(0) { $0 + kazaCount($1) }
     }
+
+    /// Kaza orucu (Ramazan'da tutulamayan günler), namazlardan ayrı sayılır.
+    static let fastingKazaName = "Oruç"
 
     /// Namaz adı: "İmsak" bir vakittir, namazın adı "Sabah"tır (imamın düzeltmesi).
     static func namazName(_ name: String) -> String {

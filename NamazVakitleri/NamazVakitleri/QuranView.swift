@@ -42,6 +42,7 @@ struct QuranView: View {
 private struct SurahListContent: View {
     @ObservedObject private var loc = LocalizationManager.shared
     @Environment(\.colorScheme) private var colorScheme
+    @ObservedObject private var network = NetworkMonitor.shared
     @State private var surahs: [QuranSurahSummary] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
@@ -112,6 +113,9 @@ private struct SurahListContent: View {
                         Button(loc.t("home_retry", fallback: "Tekrar Dene")) { Task { await loadSurahs() } }
                     }
                     .padding()
+                    .onChange(of: network.isOnline) { _, online in
+                        if online { Task { await loadSurahs() } }
+                    }
                 } else if filteredSurahs.isEmpty {
                     Text(loc.t("quran_no_match", fallback: "Bu adla sure bulunamadı. Daha kısa yazmayı dene (ör. \"yas\")."))
                         .font(AppTheme.body(14))
@@ -182,7 +186,11 @@ private struct SurahDetailView: View {
     @AppStorage("lastReadSurahName") private var lastReadSurahName: String = ""
     @AppStorage("lastReadAyahNumber") private var lastReadAyahNumber: Int = 0
 
-    @StateObject private var recitation = RecitationPlayer()
+    @ObservedObject private var network = NetworkMonitor.shared
+    @ObservedObject private var recitation = RecitationPlayer.shared
+    private var sourceKey: String { "surah-\(surah.number)" }
+    /// Ortak çalar şu an bu sureyi mi okuyor?
+    private var isThisSurah: Bool { recitation.sourceID == sourceKey }
     @ObservedObject private var audioStore = QuranAudioStore.shared
 
     let surah: QuranSurahSummary
@@ -197,7 +205,28 @@ private struct SurahDetailView: View {
                 ProgressView(loc.t("quran_loading", fallback: "Yükleniyor..."))
                     .tint(AppTheme.accent)
             } else if let errorMessage {
-                Text(errorMessage).foregroundStyle(.red).padding()
+                // Hata ekranında takılı kalınmasın: "Tekrar Dene" + internet gelince otomatik yükle.
+                VStack(spacing: 14) {
+                    Image(systemName: network.isOnline ? "exclamationmark.triangle" : "wifi.slash")
+                        .font(.system(size: 34))
+                        .foregroundColor(AppTheme.accent)
+                    Text(network.isOnline ? errorMessage : loc.t("quran_offline", fallback: "İnternet yok. Bağlantı gelince sure kendiliğinden açılacak."))
+                        .font(AppTheme.body(15))
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(AppTheme.textPrimary(colorScheme))
+                    Button {
+                        Task { await loadContent() }
+                    } label: {
+                        Label(loc.t("home_retry", fallback: "Tekrar Dene"), systemImage: "arrow.clockwise")
+                            .font(AppTheme.body(16, weight: .semibold))
+                            .padding(.horizontal, 22)
+                            .padding(.vertical, 12)
+                            .background(Capsule().fill(AppTheme.accent))
+                            .foregroundColor(.white)
+                    }
+                }
+                .padding(24)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let content {
                 ScrollViewReader { proxy in
                 ScrollView {
@@ -228,13 +257,13 @@ private struct SurahDetailView: View {
                         .padding(.vertical, 10)
 
                         ForEach(Array(content.arabic.enumerated()), id: \.offset) { index, arabicAyah in
-                            let isCurrent = recitation.currentIndex == index
+                            let isCurrent = isThisSurah && recitation.currentIndex == index
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack {
                                     Spacer()
                                     // Ayet numarasına dokununca hafız bu ayetten başlar.
                                     Button {
-                                        recitation.play(globalNumbers: content.arabic.map(\.number), from: index)
+                                        recitation.play(globalNumbers: content.arabic.map(\.number), from: index, sourceID: sourceKey, title: SurahNames.title(for: surah))
                                     } label: {
                                         HStack(spacing: 4) {
                                             Image(systemName: isCurrent ? "speaker.wave.2.fill" : "play.fill")
@@ -284,6 +313,7 @@ private struct SurahDetailView: View {
                 }
                 // Okunan ayet ekranda görünür kalsın.
                 .onChange(of: recitation.currentIndex) { _, newIndex in
+                    guard isThisSurah else { return }
                     guard let newIndex else { return }
                     withAnimation(.easeInOut(duration: 0.35)) { proxy.scrollTo(newIndex, anchor: .top) }
                     lastReadAyahNumber = newIndex + 1
@@ -294,7 +324,10 @@ private struct SurahDetailView: View {
                 }
             }
         }
-        .onDisappear { recitation.stop() }
+        // Sure ekranından çıkınca ses durmaz; diğer sekmelerde mini çalar görünür.
+        .onChange(of: network.isOnline) { _, online in
+            if online && content == nil && errorMessage != nil { Task { await loadContent() } }
+        }
         .alert(loc.t("recitation_error_title", fallback: "Ses çalınamadı"), isPresented: Binding(
             get: { recitation.errorMessage != nil },
             set: { if !$0 { recitation.errorMessage = nil } }
@@ -322,8 +355,8 @@ private struct SurahDetailView: View {
             // Sadece sure gerçekten açıldıysa "son okunan" olarak kaydet.
             guard let content else { return }
             #if DEBUG
-            if UserDefaults.standard.bool(forKey: "uiAutoPlay") {
-                recitation.play(globalNumbers: content.arabic.map(\.number), from: 1)
+            if UserDefaults.standard.bool(forKey: "uiAutoPlay"), !isThisSurah {
+                recitation.play(globalNumbers: content.arabic.map(\.number), from: 1, sourceID: sourceKey, title: SurahNames.title(for: surah))
             }
             #endif
             lastReadSurahName = SurahNames.title(for: surah)
@@ -386,7 +419,7 @@ private struct SurahDetailView: View {
                     .foregroundColor(AppTheme.textPrimary(colorScheme))
                     .lineLimit(2)
                     .minimumScaleFactor(0.8)
-                if let index = recitation.currentIndex {
+                if isThisSurah, let index = recitation.currentIndex {
                     Text(loc.tf("recitation_now", "%d. ayet okunuyor", index + 1))
                         .font(.caption)
                         .foregroundColor(AppTheme.accent)
@@ -397,7 +430,7 @@ private struct SurahDetailView: View {
             if recitation.isLoading {
                 ProgressView().tint(AppTheme.accent)
             }
-            if recitation.currentIndex != nil {
+            if isThisSurah && recitation.currentIndex != nil {
                 Button { recitation.stop() } label: {
                     Image(systemName: "stop.fill")
                         .font(.system(size: 18, weight: .semibold))
@@ -407,15 +440,15 @@ private struct SurahDetailView: View {
                 .accessibilityLabel(loc.t("quran_stop", fallback: "Durdur"))
             }
             Button {
-                if recitation.currentIndex == nil {
-                    recitation.play(globalNumbers: content.arabic.map(\.number))
+                if !isThisSurah || recitation.currentIndex == nil {
+                    recitation.play(globalNumbers: content.arabic.map(\.number), sourceID: sourceKey, title: SurahNames.title(for: surah))
                 } else if recitation.isPlaying {
                     recitation.pause()
                 } else {
                     recitation.resume()
                 }
             } label: {
-                Image(systemName: recitation.isPlaying ? "pause.fill" : "play.fill")
+                Image(systemName: isThisSurah && recitation.isPlaying ? "pause.fill" : "play.fill")
                     .font(.system(size: 20, weight: .bold))
                     .foregroundColor(.white)
                     .frame(width: 52, height: 52)

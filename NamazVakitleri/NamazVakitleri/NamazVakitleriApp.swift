@@ -33,6 +33,8 @@ struct NamazVakitleriApp: App {
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .background {
                 BackgroundRefresh.schedule()
+            } else if newPhase == .active {
+                IftarLiveActivity.refresh()
             }
         }
     }

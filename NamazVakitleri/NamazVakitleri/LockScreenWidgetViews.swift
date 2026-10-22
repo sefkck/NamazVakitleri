@@ -128,6 +128,21 @@ struct LockScreenWidgetsPreview: View {
                     LockRectangularPrayerView(prayerName: "İkindi", prayerDate: date, timeZone: .current, cityName: "İstanbul Fatih")
                         .frame(width: 170, height: 72)
                 }
+                // Ana ekran: Günün Esmâ'sı (küçük + orta)
+                HStack(spacing: 16) {
+                    EsmaWidgetView(name: EsmaulHusna.nameOfDay(), language: LocalizationManager.shared.language, medium: false)
+                        .frame(width: 158, height: 158)
+                        .background(RoundedRectangle(cornerRadius: 22).fill(Color(red: 0.98, green: 0.965, blue: 0.945)))
+                        .environment(\.colorScheme, .light)
+                    EsmaWidgetView(name: EsmaulHusna.nameOfDay(), language: LocalizationManager.shared.language, medium: false)
+                        .frame(width: 158, height: 158)
+                        .background(RoundedRectangle(cornerRadius: 22).fill(Color(red: 0.06, green: 0.06, blue: 0.07)))
+                        .environment(\.colorScheme, .dark)
+                }
+                EsmaWidgetView(name: EsmaulHusna.nameOfDay(), language: LocalizationManager.shared.language, medium: true)
+                    .frame(width: 338, height: 158)
+                    .background(RoundedRectangle(cornerRadius: 22).fill(Color(red: 0.98, green: 0.965, blue: 0.945)))
+                    .environment(\.colorScheme, .light)
             }
             .foregroundStyle(.white)
         }

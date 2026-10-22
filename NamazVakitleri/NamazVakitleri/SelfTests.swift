@@ -419,7 +419,7 @@ enum SelfTests {
                        "recitation_error", "recitation_error_title", "recitation_from_ayah", "recitation_reciter",
                        "recitation_now", "recitation_pause", "sources_title", "sources_note",
                        "zikir_reset_confirm_title", "zikir_reset_confirm_body", "zikir_mode_tesbihat",
-                       "tesbih_subhanallah", "tesbih_elhamdulillah", "tesbih_allahuekber", "tesbih_step", "privacy_read_web", "lock_widget_name", "lock_widget_desc", "kerahat_now_title", "kerahat_israk", "kerahat_istiva", "kerahat_isfirar", "settings_kerahat", "settings_kerahat_footer", "siri_no_location", "siri_no_times", "siri_next_answer", "siri_remaining_hm", "siri_remaining_m", "siri_kerahat_now", "siri_kerahat_next", "siri_kerahat_none", "qibla_kaaba", "qibla_you", "qibla_map_info", "qibla_map_hint", "qibla_map_near", "qibla_map_whole", "qibla_map_title", "qibla_map_button", "home_alarm_toast_on", "home_alarm_toast_off", "imsakiye_ramadan_year", "settings_kerahat_page", "kerahat_today", "common_on", "common_off", "qibla_map_north", "qibla_map_hint_north", "prayer_sabah", "prayer_vitir", "qibla_map_info2", "watch_open_phone", "settings_adjust_footer_other", "tracking_marked", "tracking_unmarked", "common_undo", "settings_current_place", "home_time_left", "settings_adjust_footer_abroad", "duas_jump", "watch_qibla_hint", "audio_download", "audio_downloaded", "audio_downloading", "audio_delete_title", "audio_delete", "audio_delete_body", "audio_download_error", "audio_download_error_title", "audio_storage_title", "audio_storage_size", "audio_delete_all", "method_title", "method_diyanet", "method_isna", "method_mwl", "method_ummAlQura", "method_footer"]
+                       "tesbih_subhanallah", "tesbih_elhamdulillah", "tesbih_allahuekber", "tesbih_step", "privacy_read_web", "lock_widget_name", "lock_widget_desc", "kerahat_now_title", "kerahat_israk", "kerahat_istiva", "kerahat_isfirar", "settings_kerahat", "settings_kerahat_footer", "siri_no_location", "siri_no_times", "siri_next_answer", "siri_remaining_hm", "siri_remaining_m", "siri_kerahat_now", "siri_kerahat_next", "siri_kerahat_none", "qibla_kaaba", "qibla_you", "qibla_map_info", "qibla_map_hint", "qibla_map_near", "qibla_map_whole", "qibla_map_title", "qibla_map_button", "home_alarm_toast_on", "home_alarm_toast_off", "imsakiye_ramadan_year", "settings_kerahat_page", "kerahat_today", "common_on", "common_off", "qibla_map_north", "qibla_map_hint_north", "prayer_sabah", "prayer_vitir", "qibla_map_info2", "watch_open_phone", "settings_adjust_footer_other", "tracking_marked", "tracking_unmarked", "common_undo", "settings_current_place", "quran_offline", "esma_title", "esma_today", "esma_search", "live_toggle", "settings_real_alarm", "settings_real_alarm_denied", "settings_real_alarm_footer", "alarm_snooze", "widget_esma_name", "alarm_snooze_real", "recitation_open_hint", "backup_title", "backup_export", "backup_import", "backup_file_name", "backup_footer", "backup_confirm_title", "backup_confirm_msg", "backup_restore", "backup_done", "backup_invalid", "widget_esma_desc", "settings_alarm_for", "settings_alarm_skip_friday", "live_footer", "live_disabled", "live_iftar_left", "live_sahur_left", "live_iftar_now", "live_sahur_now", "tracking_excused", "tracking_fast_days", "tracking_fast_title", "tracking_fast_footer", "siri_prayer_today", "siri_prayer_passed", "siri_today_list", "home_time_left", "settings_adjust_footer_abroad", "duas_jump", "watch_qibla_hint", "audio_download", "audio_downloaded", "audio_downloading", "audio_delete_title", "audio_delete", "audio_delete_body", "audio_download_error", "audio_download_error_title", "audio_storage_title", "audio_storage_size", "audio_delete_all", "method_title", "method_diyanet", "method_isna", "method_mwl", "method_ummAlQura", "method_footer"]
         let missing = newKeys.filter { key in
             guard let e = LocalizationStrings.table[key] else { return true }
             return e[.english] == nil || e[.arabic] == nil || e[.german] == nil
@@ -708,6 +708,182 @@ enum SelfTests {
             d.set("Europe/Istanbul", forKey: "lastKnownTimeZoneID"); let home = SettingsView.locationIsInTurkey
             if let tzBackup { d.set(tzBackup, forKey: "lastKnownTimeZoneID") } else { d.removeObject(forKey: "lastKnownTimeZoneID") }
             check("T76", "Kaza +1 güncel değerden; 'en fazla 1 dk' yazısı sadece Türkiye'de", a == 4 && b == 5 && abroad && home)
+        }
+
+        // T77: Siri: "Safa öğle kaçta" ve "Safa bugünkü vakitler" cevapları.
+        do {
+            let d = UserDefaults.standard
+            let keys = ["lastKnownLatitude", "lastKnownLongitude", "lastKnownTimeZoneID"]
+            let backup = keys.map { ($0, d.object(forKey: $0)) }
+            d.set(41.0082, forKey: "lastKnownLatitude"); d.set(28.9784, forKey: "lastKnownLongitude"); d.set("Europe/Istanbul", forKey: "lastKnownTimeZoneID")
+            let ogle = SiriPrayerInfo.prayerTimeAnswer(.ogle)
+            let list = SiriPrayerInfo.todayTimesAnswer()
+            backup.forEach { if let v = $0.1 { d.set(v, forKey: $0.0) } else { d.removeObject(forKey: $0.0) } }
+            let o = LocalizationManager.shared.x("Öğle")
+            check("T77", "Siri: vakit sorusu ve bugünkü vakitler listesi", ogle.contains(o) && ogle.contains(":") && list.components(separatedBy: ":").count >= 7 && !ogle.contains("%"),
+                  "\(ogle) | \(list)")
+        }
+
+        // T78: "Birazdan Hatırlat" gerçekten 10 dk sonrasına bekleyen bildirim kurar (kayıt bitince haber verir).
+        do {
+            // Testler ana iş parçacığında çalışıyor: bekleyen listeyi arka plandan yokla.
+            NotificationManager.shared.scheduleSnooze(title: "T78")
+            var found = false
+            for _ in 0..<20 where !found {
+                let sem = DispatchSemaphore(value: 0)
+                UNUserNotificationCenter.current().getPendingNotificationRequests { reqs in
+                    let mine = reqs.filter { $0.identifier.hasPrefix("prayer_snooze_") && $0.content.title == "T78" }
+                    if mine.contains(where: { (($0.trigger as? UNTimeIntervalNotificationTrigger)?.timeInterval ?? 0) == 600 }) {
+                        found = true
+                        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: mine.map(\.identifier))
+                    }
+                    sem.signal()
+                }
+                _ = sem.wait(timeout: .now() + 2)
+                if !found { Thread.sleep(forTimeInterval: 0.2) }
+            }
+            let ok = found
+            let authorized: Bool = {
+                let s2 = DispatchSemaphore(value: 0); var a = false
+                UNUserNotificationCenter.current().getNotificationSettings { a = $0.authorizationStatus == .authorized; s2.signal() }
+                _ = s2.wait(timeout: .now() + 3); return a
+            }()
+            if authorized {
+                check("T78", "Birazdan Hatırlat: 10 dk sonrasına bekleyen bildirim kuruluyor", ok)
+            } else {
+                skip("T78", "Birazdan Hatırlat", "bildirim izni yok")
+            }
+        }
+
+        // T79: Özel gün seriyi bozmaz; oruç kazası ayrı sayılır.
+        do {
+            let d = UserDefaults.standard
+            let backupLog = d.object(forKey: "prayer_log"), backupEx = d.object(forKey: "excused_days")
+            let backupFast = PrayerTracker.kazaCount(PrayerTracker.fastingKazaName)
+            d.removeObject(forKey: "prayer_log"); d.removeObject(forKey: "excused_days")
+            let tz = TimeZone(identifier: "Europe/Istanbul")!
+            var cal = Calendar(identifier: .gregorian); cal.timeZone = tz
+            let today = cal.date(bySettingHour: 23, minute: 0, second: 0, of: Date())!
+            func key(_ back: Int) -> String { PrayerTracker.dayKey(cal.date(byAdding: .day, value: -back, to: today)!, timeZone: tz) }
+            for back in [0, 1, 3] { for n in NotificationManager.prayerNames { PrayerTracker.setPrayed(true, name: n, dayKey: key(back)) } }
+            let broken = PrayerTracker.streak(today: today, timeZone: tz)
+            PrayerTracker.setExcused(true, dayKey: key(2))
+            let bridged = PrayerTracker.streak(today: today, timeZone: tz)
+            PrayerTracker.setKazaCount(3, for: PrayerTracker.fastingKazaName)
+            let fastOK = PrayerTracker.kazaCount(PrayerTracker.fastingKazaName) == 3
+                && !PrayerTracker.kazaNames.contains(PrayerTracker.fastingKazaName)
+            PrayerTracker.setKazaCount(backupFast, for: PrayerTracker.fastingKazaName)
+            if let backupLog { d.set(backupLog, forKey: "prayer_log") } else { d.removeObject(forKey: "prayer_log") }
+            if let backupEx { d.set(backupEx, forKey: "excused_days") } else { d.removeObject(forKey: "excused_days") }
+            check("T79", "Özel gün seriyi bozmaz (2→3); oruç kazası ayrı sayılır", broken == 2 && bridged == 3 && fastOK,
+                  "seri \(broken)→\(bridged)")
+        }
+
+        // T80: Esmâ-i Hüsnâ: 99 isim, tekrar yok, er-Rahmân ile başlar es-Sabûr ile biter; günün ismi değişir.
+        do {
+            let all = EsmaulHusna.all
+            let unique = Set(all.map(\.arabic)).count == 99
+            let ends = all.first?.turkish == "er-Rahmân" && all.last?.turkish == "es-Sabûr"
+            let filled = all.allSatisfy { !$0.arabic.isEmpty && !$0.meaningTR.isEmpty && !$0.meaningEN.isEmpty }
+            let d1 = EsmaulHusna.nameOfDay(Date(timeIntervalSince1970: 1_790_000_000)).id
+            let d2 = EsmaulHusna.nameOfDay(Date(timeIntervalSince1970: 1_790_086_400)).id
+            check("T80", "Esmâ-i Hüsnâ: 99 benzersiz isim, sıra doğru, anlamlar dolu, günün ismi her gün değişir",
+                  all.count == 99 && unique && ends && filled && d1 != d2)
+        }
+
+        // T81: İftar/sahur sayacı hedefi: gece → bugünkü imsak, gündüz → akşam, akşamdan sonra → yarınki imsak.
+        do {
+            let ankara = CLLocationCoordinate2D(latitude: 39.9334, longitude: 32.8597)
+            let tz = TimeZone(identifier: "Europe/Istanbul")!
+            var cal = Calendar(identifier: .gregorian); cal.timeZone = tz
+            func at(_ h: Int) -> Date { cal.date(from: DateComponents(year: 2027, month: 2, day: 20, hour: h))! }
+            let today = PrayerCalculation.times(on: at(12), coordinate: ankara, timeZone: tz)
+            let tomorrow = PrayerCalculation.times(on: at(12).addingTimeInterval(86400), coordinate: ankara, timeZone: tz)
+            let night = IftarLiveActivity.nextTarget(now: at(3), coordinate: ankara, timeZone: tz)
+            let noon = IftarLiveActivity.nextTarget(now: at(12), coordinate: ankara, timeZone: tz)
+            let late = IftarLiveActivity.nextTarget(now: at(21), coordinate: ankara, timeZone: tz)
+            let ok = night?.isIftar == false && night?.target == today?.fajr
+                && noon?.isIftar == true && noon?.target == today?.maghrib
+                && late?.isIftar == false && late?.target == tomorrow?.fajr
+            check("T81", "İftar/sahur sayacı doğru hedefi seçer (gece imsak, gündüz akşam, akşamdan sonra yarınki imsak)", ok)
+        }
+
+        // T82: Gerçek alarm (AlarmKit): 3 günlük plan doğru; izin metni var; varsayılan kapalı, kapalıyken bildirim sesli.
+        do {
+            let ankara = CLLocationCoordinate2D(latitude: 39.9334, longitude: 32.8597)
+            let tz = TimeZone(identifier: "Europe/Istanbul")!
+            var cal = Calendar(identifier: .gregorian); cal.timeZone = tz
+            let noon = cal.date(from: DateComponents(year: 2027, month: 2, day: 20, hour: 14))!
+            let all = Set(NotificationManager.prayerNames)
+            let plan = PrayerAlarms.planned(now: noon, coordinate: ankara, timeZone: tz, enabledPrayers: all, offsetMinutes: 0, chosen: { _ in true }, skipFriday: false)
+            let early = PrayerAlarms.planned(now: noon, coordinate: ankara, timeZone: tz, enabledPrayers: ["Akşam"], offsetMinutes: 3, chosen: { _ in true }, skipFriday: false)
+            let maghrib = PrayerCalculation.times(on: noon, coordinate: ankara, timeZone: tz)?.maghrib
+            // Bugün 14:00'ten sonra (Ankara'da öğle 13:07) İkindi, Akşam, Yatsı (3) + 2 gün × 5 = 13; hepsi sıralı ve gelecekte.
+            let sorted = zip(plan, plan.dropFirst()).allSatisfy { $0.date < $1.date }
+            let plist = Bundle.main.object(forInfoDictionaryKey: "NSAlarmKitUsageDescription") as? String
+            let ok = plan.count == 13 && sorted && plan.allSatisfy { $0.date > noon }
+                && early.first?.date == maghrib?.addingTimeInterval(-180)
+                && !(plist ?? "").isEmpty
+                && PrayerAlarms.isEnabled == UserDefaults.standard.bool(forKey: PrayerAlarms.enabledKey)
+            check("T82", "Gerçek alarm: 3 günlük plan (13 alarm, sıralı), 3 dk önce seçeneği, izin metni var", ok,
+                  "plan=\(plan.count), açık=\(PrayerAlarms.isEnabled), izin=\(PrayerAlarms.isAuthorized)")
+        }
+
+        // T83: Gerçek alarm vakit seçimi: varsayılan sadece İmsak; Cuma öğlesi atlanır (seçiliyse bile).
+        do {
+            let ankara = CLLocationCoordinate2D(latitude: 39.9334, longitude: 32.8597)
+            let tz = TimeZone(identifier: "Europe/Istanbul")!
+            var cal = Calendar(identifier: .gregorian); cal.timeZone = tz
+            // 18 Şub 2027 Perşembe 14:00 → Perşembe akşamı..., Cuma, Cumartesi.
+            let thu = cal.date(from: DateComponents(year: 2027, month: 2, day: 18, hour: 14))!
+            let all = Set(NotificationManager.prayerNames)
+            let defaultChoice: (String) -> Bool = { $0 == "İmsak" }
+            let onlyFajr = PrayerAlarms.planned(now: thu, coordinate: ankara, timeZone: tz, enabledPrayers: all, offsetMinutes: 0, chosen: defaultChoice, skipFriday: true)
+            let dhuhrPlan = PrayerAlarms.planned(now: thu, coordinate: ankara, timeZone: tz, enabledPrayers: all, offsetMinutes: 0, chosen: { $0 == "Öğle" }, skipFriday: true)
+            let dhuhrNoSkip = PrayerAlarms.planned(now: thu, coordinate: ankara, timeZone: tz, enabledPrayers: all, offsetMinutes: 0, chosen: { $0 == "Öğle" }, skipFriday: false)
+            let noFriday = dhuhrPlan.allSatisfy { cal.component(.weekday, from: $0.date) != 6 }
+            // Varsayılan değerler: kayıt yoksa İmsak açık, diğerleri kapalı, Cuma atlama açık.
+            let d = UserDefaults.standard
+            let storedDefaults = NotificationManager.prayerNames.allSatisfy { d.object(forKey: PrayerAlarms.choiceKey($0)) == nil }
+            let defaultsOK = !storedDefaults || (PrayerAlarms.isChosen("İmsak") && !PrayerAlarms.isChosen("Öğle") && PrayerAlarms.skipFriday)
+            check("T83", "Gerçek alarm vakit seçimi: varsayılan sadece İmsak, Cuma öğlesi atlanır", onlyFajr.count == 2
+                  && onlyFajr.allSatisfy { $0.name == "İmsak" } && dhuhrPlan.count == 1 && noFriday && dhuhrNoSkip.count == 2 && defaultsOK,
+                  "imsak=\(onlyFajr.count), öğle=\(dhuhrPlan.count)/\(dhuhrNoSkip.count)")
+        }
+
+        // T84: Ana ekranda, izin pencerelerinde ve iPhone Ayarları'nda uygulamanın adı "Safa".
+        check("T84", "Uygulamanın görünen adı Safa",
+              Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String == "Safa")
+
+        // T85: Gerçek alarm düğmesi "Ertele" (bildirimdeki "Birazdan Hatırlat" ile karışmasın); Esmâ widget'ı gece yarısı değişir.
+        do {
+            let tr = LocalizationManager.translate("alarm_snooze_real", language: .turkish, fallback: nil)
+            let en = LocalizationManager.translate("alarm_snooze_real", language: .english, fallback: nil)
+            let notif = LocalizationManager.translate("alarm_snooze", language: .turkish, fallback: nil)
+            var cal = Calendar.current; cal.timeZone = .current
+            let d1 = cal.date(from: DateComponents(year: 2027, month: 3, day: 1, hour: 23, minute: 59))!
+            let d2 = d1.addingTimeInterval(120)
+            let changes = EsmaulHusna.nameOfDay(d1).id != EsmaulHusna.nameOfDay(d2).id
+            check("T85", "Alarm düğmesi \"Ertele\", bildirim düğmesinden ayrı; Günün Esmâ'sı gece yarısı değişir",
+                  tr == "Ertele" && en == "Snooze" && notif != tr && changes, "tr=\(tr) en=\(en)")
+        }
+
+        // T86: Yedekleme: kayıtlar dosyaya yazılıp geri okunur, başka bir depoya aynen yüklenir; yabancı dosya reddedilir.
+        do {
+            let suite = "safa.selftest.backup"
+            let src = UserDefaults(suiteName: suite + ".src")!, dst = UserDefaults(suiteName: suite + ".dst")!
+            src.removePersistentDomain(forName: suite + ".src"); dst.removePersistentDomain(forName: suite + ".dst")
+            src.set(["2026-10-20": ["Öğle", "İkindi"], "2026-10-21": ["İmsak"]], forKey: TrackingBackup.prayerLogKey)
+            src.set(["2026-10-19"], forKey: TrackingBackup.excusedKey)
+            src.set(4, forKey: "kaza_count_Öğle"); src.set(7, forKey: "kaza_count_Oruç"); src.set(12, forKey: "zikir_count_33")
+            let original = TrackingBackup.make(from: src, now: Date(timeIntervalSince1970: 1_790_000_000))
+            let restored = try? TrackingBackup.decode(TrackingBackup.encode(original))
+            if let restored { TrackingBackup.apply(restored, to: dst) }
+            let copy = TrackingBackup.make(from: dst, now: original.created)
+            let foreign = (try? TrackingBackup.decode(Data("{\"app\":\"X\"}".utf8))) == nil
+            check("T86", "Yedekleme: kayıtlar dosyaya yazılıp aynen geri yüklenir; başka dosya reddedilir",
+                  restored == original && copy == original && copy.kaza["Oruç"] == 7 && copy.prayerLog.count == 2 && foreign)
+            src.removePersistentDomain(forName: suite + ".src"); dst.removePersistentDomain(forName: suite + ".dst")
         }
 
         // T35: Çift Besmele kaldırılıyor (Fâtiha ve Tevbe hariç).

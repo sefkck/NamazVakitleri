@@ -20,7 +20,7 @@ import SwiftUI
 /// Aydınlık/Karanlık temasına göre ayarlayan sarmalayıcı. Düz tek renk
 /// yerine köşede hafif bir altın/bordo degrade ile derinlik katıyor -
 /// "premium" hissi büyük ölçüde buradan geliyor.
-private struct ThemedWidgetBackground<Content: View>: View {
+struct ThemedWidgetBackground<Content: View>: View {
     @Environment(\.colorScheme) private var systemColorScheme
     let content: Content
 
@@ -518,5 +518,8 @@ struct SafaWidgetsBundle: WidgetBundle {
         SafaLockScreenWidget()
         SafaDailyPrayerWidget()
         SafaAyahWidget()
+        SafaEsmaWidget()
+        IftarLiveActivityWidget()
+        PrayerAlarmLiveActivity()
     }
 }

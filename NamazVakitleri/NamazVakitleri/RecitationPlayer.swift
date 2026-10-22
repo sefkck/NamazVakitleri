@@ -34,6 +34,14 @@ final class RecitationPlayer: ObservableObject {
         return URL(string: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/\(globalAyahNumber).mp3")
     }
 
+    /// Kur'an sekmesinin ortak çaları: sure ekranından çıkınca da çalmaya devam eder,
+    /// diğer sekmelerde mini çalar olarak görünür.
+    static let shared = RecitationPlayer()
+
+    /// Çalan içeriğin kimliği ("surah-36") ve ekranda görünen adı ("Yâsîn").
+    @Published private(set) var sourceID: String?
+    @Published private(set) var sourceTitle: String?
+
     /// Okunan ayetin sure içindeki sırası (0'dan başlar); okunmuyorsa nil.
     @Published private(set) var currentIndex: Int?
     @Published private(set) var isPlaying = false
@@ -51,8 +59,10 @@ final class RecitationPlayer: ObservableObject {
     deinit { stop() }
 
     /// `globalNumbers`: suredeki ayetlerin genel numaraları; `index`'ten başlar.
-    func play(globalNumbers: [Int], from index: Int = 0) {
+    func play(globalNumbers: [Int], from index: Int = 0, sourceID: String? = nil, title: String? = nil) {
         guard globalNumbers.indices.contains(index) else { return }
+        self.sourceID = sourceID
+        self.sourceTitle = title
         ayahNumbers = globalNumbers
         errorMessage = nil
         retriedIndex = nil
@@ -79,6 +89,8 @@ final class RecitationPlayer: ObservableObject {
         currentIndex = nil
         isPlaying = false
         isLoading = false
+        sourceID = nil
+        sourceTitle = nil
     }
 
     /// Sıradaki ayetin sırası; son ayetten sonra nil.

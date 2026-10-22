@@ -78,6 +78,13 @@ struct MainTabView: View {
                     .tag(AppTab.more)
             }
             .tint(AppTheme.accent)
+            // Kur'an çalarken başka sekmede mini çalar (menü çubuğunun üstünde).
+            .overlay(alignment: .bottom) {
+                if selectedTab != .quran {
+                    MiniPlayerBar { selectedTab = .quran }
+                        .padding(.bottom, 92)
+                }
+            }
 
             // Tüm sekmelerin üstünde sabit reklam paneli
             // (App Store ekran resimleri için test sürümünde -uiHideAds YES ile gizlenir).

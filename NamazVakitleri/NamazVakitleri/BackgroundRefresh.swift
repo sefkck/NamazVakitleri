@@ -39,6 +39,7 @@ enum BackgroundRefresh {
 
         DispatchQueue.main.async {
             refreshWidgetData()
+            IftarLiveActivity.refresh()
             NotificationManager.shared.rescheduleFromLastKnownLocation {
                 finished.complete(success: true)
             }

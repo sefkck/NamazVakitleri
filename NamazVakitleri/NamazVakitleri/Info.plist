@@ -15,6 +15,10 @@
 			<string>Safa</string>
 		</dict>
 	</array>
+	<key>NSAlarmKitUsageDescription</key>
+	<string>Namaz vakitlerinde telefon sessizdeyken de alarm çalabilmesi için.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>UIBackgroundModes</key>

@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 import Combine
 import UserNotifications
 import CoreLocation
@@ -142,10 +143,12 @@ final class NotificationManager: NSObject, ObservableObject, UNUserNotificationC
         UserDefaults.standard.set(id, forKey: Self.soundChoiceKey)
     }
 
+    var selectedSoundFileName: String {
+        Self.soundOptions.first(where: { $0.id == selectedSoundChoice })?.fileName ?? Self.soundOptions[0].fileName
+    }
+
     private func selectedSound() -> UNNotificationSound {
-        let fileName = Self.soundOptions.first(where: { $0.id == selectedSoundChoice })?.fileName
-            ?? Self.soundOptions[0].fileName
-        return UNNotificationSound(named: UNNotificationSoundName(fileName))
+        UNNotificationSound(named: UNNotificationSoundName(selectedSoundFileName))
     }
 
     private var previewPlayer: AVAudioPlayer?
@@ -370,7 +373,10 @@ final class NotificationManager: NSObject, ObservableObject, UNUserNotificationC
                 // Kilitli ekrandan "Birazdan Hatırlat" butonuna basıldı,
                 // uygulamayı açmadan 10 dakika sonrasına yeni bir
                 // hatırlatma kur.
-                scheduleSnooze(title: content.title, userInfo: content.userInfo)
+                // iOS, completionHandler çağrılınca uygulamayı hemen uyutuyor; erteleme
+                // kaydı tamamlanmadan uyursa hatırlatma hiç gelmiyordu. Önce kaydı bitir.
+                scheduleSnooze(title: content.title, userInfo: content.userInfo) { completionHandler() }
+                return
             case UNNotificationDefaultActionIdentifier:
                 // Butona değil, bildirimin gövdesine dokunuldu ->
                 // uygulama açılıyor. Bildirim yeni geldiyse alarm ekranını
@@ -422,7 +428,7 @@ final class NotificationManager: NSObject, ObservableObject, UNUserNotificationC
 
     /// Alarm ekranındaki "Birazdan Hatırlat" seçeneği için 10 dakika
     /// sonraya aynı kategoriyle yeni bir hatırlatma kurar.
-    func scheduleSnooze(title: String, userInfo: [AnyHashable: Any] = [:]) {
+    func scheduleSnooze(title: String, userInfo: [AnyHashable: Any] = [:], completion: (() -> Void)? = nil) {
         let content = UNMutableNotificationContent()
         content.title = title
         content.userInfo = userInfo
@@ -432,7 +438,15 @@ final class NotificationManager: NSObject, ObservableObject, UNUserNotificationC
         content.interruptionLevel = .timeSensitive
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 10 * 60, repeats: false)
         let request = UNNotificationRequest(identifier: "prayer_snooze_\(UUID().uuidString)", content: content, trigger: trigger)
-        center.add(request)
+        // Uygulama arka planda uyandırıldıysa iş bitene kadar kapanmasın.
+        var bgTask = UIBackgroundTaskIdentifier.invalid
+        bgTask = UIApplication.shared.beginBackgroundTask { UIApplication.shared.endBackgroundTask(bgTask) }
+        center.add(request) { _ in
+            DispatchQueue.main.async {
+                completion?()
+                if bgTask != .invalid { UIApplication.shared.endBackgroundTask(bgTask) }
+            }
+        }
     }
 
     func checkAuthorization(completion: @escaping (Bool) -> Void) {
@@ -471,6 +485,18 @@ final class NotificationManager: NSObject, ObservableObject, UNUserNotificationC
     }
 
     private func performReschedule(coordinate: CLLocationCoordinate2D, timeZone: TimeZone, generation: Int, completion: (() -> Void)?) {
+        guard generation == scheduleGeneration else {
+            completion?()
+            return
+        }
+        // Gerçek alarmlar bildirim izninden bağımsızdır; ikisi de bitince completion.
+        let group = DispatchGroup()
+        group.enter()
+        PrayerAlarms.sync(coordinate: coordinate, timeZone: timeZone) { group.leave() }
+        group.enter()
+        let notificationsDone = { group.leave() }
+        group.notify(queue: .main) { completion?() }
+        let completion: (() -> Void)? = notificationsDone
         center.getNotificationSettings { [weak self] settings in
             DispatchQueue.main.async {
                 guard let self,
@@ -628,6 +654,8 @@ final class NotificationManager: NSObject, ObservableObject, UNUserNotificationC
         let L = LocalizationManager.shared
         let sound = selectedSound()
         let now = Date()
+        // Gerçek alarm açıksa ilk günlerde ses alarmdan gelir; bildirim sessiz.
+        let alarmDays = PrayerAlarms.isActive ? PrayerAlarms.alarmDays : 0
 
         let prayerMap: [(Prayer, String)] = [
             (.fajr, "İmsak"), (.dhuhr, "Öğle"), (.asr, "İkindi"), (.maghrib, "Akşam"), (.isha, "Yatsı")
@@ -662,7 +690,8 @@ final class NotificationManager: NSObject, ObservableObject, UNUserNotificationC
                 }
                 // Kullanıcının Ayarlar'dan seçtiği iki tondan biri (bkz.
                 // Self.soundOptions).
-                content.sound = sound
+                let alarmRings = dayOffset < alarmDays && PrayerAlarms.applies(name, on: day, calendar: calendar)
+                content.sound = alarmRings ? nil : sound
                 content.categoryIdentifier = Self.prayerCategoryID
                 content.userInfo = [Self.prayerInfoKey: name, Self.dayInfoKey: PrayerTracker.dayKey(day, timeZone: timeZone)]
                 // Odak/Rahatsız Etme modlarını delip geçer (entitlement gerekli:

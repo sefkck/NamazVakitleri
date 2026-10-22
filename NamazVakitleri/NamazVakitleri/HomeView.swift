@@ -31,6 +31,7 @@ struct HomeView: View {
     @State private var currentTimeText = "--:--:--"
 
     private let clockTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    @State private var isOnScreen = true
     private let turkeyTimeZone = TimeZone(identifier: "Europe/Istanbul") ?? .current
 
     private var effectiveCityName: String {
@@ -221,8 +222,12 @@ struct HomeView: View {
             applyResolvedLocation(coordinate: coordinate, timeZone: newTimeZone)
         }
         .onReceive(clockTimer) { _ in
+            // Başka sekmedeyken her saniye ekranı yeniden çizme (pil).
+            guard isOnScreen else { return }
             updateClock()
         }
+        .onAppear { isOnScreen = true; updateClock() }
+        .onDisappear { isOnScreen = false }
         .onChange(of: scenePhase) { _, newPhase in
             // Bildirime dokunup uygulamaya dönünce, arka plandan geri
             // gelince veya kilit açılınca ekran bir şekilde eksik/bozuk

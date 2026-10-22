@@ -9,6 +9,7 @@ struct ImsakiyeView: View {
     @ObservedObject private var loc = LocalizationManager.shared
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
+    @State private var liveOn = IftarLiveActivity.isEnabled
 
     private struct Row: Identifiable {
         let id: Int
@@ -50,6 +51,7 @@ struct ImsakiyeView: View {
                 } else {
                     ScrollViewReader { proxy in
                         List {
+                            liveSection
                             Section {
                                 header
                                 ForEach(rows) { row in
@@ -85,6 +87,23 @@ struct ImsakiyeView: View {
                     .accessibilityLabel(loc.t("common_close", fallback: "Kapat"))
                 }
             }
+        }
+    }
+
+    /// Kilit ekranında iftar / sahur sayacı.
+    private var liveSection: some View {
+        Section {
+            Toggle(isOn: $liveOn) {
+                Label(loc.t("live_toggle", fallback: "Kilit ekranında iftar/sahur sayacı"), systemImage: "timer")
+            }
+            .tint(AppTheme.accent)
+            .onChange(of: liveOn) { _, on in IftarLiveActivity.setEnabled(on) }
+            .disabled(!IftarLiveActivity.systemAllowed)
+            .listRowBackground(AppTheme.cardFill(colorScheme))
+        } footer: {
+            Text(IftarLiveActivity.systemAllowed
+                 ? loc.t("live_footer", fallback: "Gündüz iftara, akşamdan sonra sahurun bitişine (imsak) kalan süre kilit ekranında ve Dynamic Island'da görünür. Vakit girince uygulamayı açtığında sıradaki vakte geçer.")
+                 : loc.t("live_disabled", fallback: "Canlı Etkinlikler kapalı. Ayarlar > Safa > Canlı Etkinlikler'den açabilirsin."))
         }
     }
 

@@ -26,6 +26,9 @@ struct SettingsView: View {
     @AppStorage(NotificationManager.sahurEnabledKey) private var sahurEnabled: Bool = true
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var alarmTestSeconds = 0
+    @State private var realAlarm = PrayerAlarms.isEnabled
+    @State private var realAlarmDenied = false
+    @State private var alarmChoiceRefresh = 0
 
     /// Son bilinen konum Türkiye'de mi? (Diyanet uyumu "en fazla 1 dk" sadece Türkiye için ölçüldü.)
     static var locationIsInTurkey: Bool {
@@ -270,7 +273,57 @@ struct SettingsView: View {
                     soundOptionRow(option)
                 }
 
+                Toggle(isOn: $realAlarm) {
+                    Label(loc.t("settings_real_alarm", fallback: "Gerçek alarm (sessiz modda da çalar)"), systemImage: "alarm.fill")
+                }
+                .tint(AppTheme.accent)
+                .onChange(of: realAlarm) { _, on in
+                    guard on != PrayerAlarms.isEnabled else { return }
+                    if on {
+                        PrayerAlarms.enable { granted in
+                            realAlarm = granted
+                            realAlarmDenied = !granted
+                            handleNotificationPrefChange()
+                        }
+                    } else {
+                        PrayerAlarms.disable()
+                        realAlarmDenied = false
+                        handleNotificationPrefChange()
+                    }
+                }
+                if realAlarm {
+                    ForEach(NotificationManager.prayerNames, id: \.self) { name in
+                        Toggle(isOn: Binding(
+                            get: { _ = alarmChoiceRefresh; return PrayerAlarms.isChosen(name) },
+                            set: { PrayerAlarms.setChosen($0, name); alarmChoiceRefresh += 1; handleNotificationPrefChange() })) {
+                            Text(loc.tf("settings_alarm_for", "%@: alarm", loc.x(name)))
+                                .font(.subheadline)
+                        }
+                        .tint(AppTheme.accent)
+                        .padding(.leading, 28)
+                        .id("alarm-\(name)-\(alarmChoiceRefresh)")
+                    }
+                    Toggle(isOn: Binding(
+                        get: { _ = alarmChoiceRefresh; return PrayerAlarms.skipFriday },
+                        set: { UserDefaults.standard.set($0, forKey: PrayerAlarms.skipFridayKey); alarmChoiceRefresh += 1; handleNotificationPrefChange() })) {
+                        Text(loc.t("settings_alarm_skip_friday", fallback: "Cuma öğle alarmı çalmasın"))
+                            .font(.subheadline)
+                    }
+                    .tint(AppTheme.accent)
+                    .padding(.leading, 28)
+                }
+                if realAlarmDenied {
+                    Label(loc.t("settings_real_alarm_denied", fallback: "Alarm izni verilmedi. Ayarlar > Safa > Alarmlar'dan açabilirsin."), systemImage: "exclamationmark.triangle")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+
                 Button(loc.t("settings_try_alarm", fallback: "Alarm Görünümünü Şimdi Dene")) {
+                    if PrayerAlarms.isActive {
+                        PrayerAlarms.scheduleTest()
+                        startAlarmTestCountdown()
+                        return
+                    }
                     NotificationManager.shared.requestAuthorization { granted in
                         guard granted else { return }
                         NotificationManager.shared.scheduleTestPrayerAlarm()
@@ -288,6 +341,8 @@ struct SettingsView: View {
                 Text(loc.t("settings_prayer_notifs", fallback: "Namaz Vakti Bildirimleri"))
             } footer: {
                 Text(loc.t("settings_prayer_notifs_footer2", fallback: "Bildirim almak istediğin vakitleri seç; hepsi aynı zaman tercihini kullanır. Bir sese dokununca seçilir, ▶︎ düğmesi sesi dinletir. Namaz bildirimleri \"Zamana Duyarlı\" gönderilir: Odak ve Rahatsız Etme modundayken de ekrana gelir. Telefon sessiz moddaysa ses çalmaz, sadece titreşir. \"Kıldım\" / \"Birazdan Hatırlat\" düğmeleri için bildirime basılı tut. Deneme düğmesi 5 saniye sonra örnek bir bildirim gönderir."))
+                + Text("\n\n")
+                + Text(loc.t("settings_real_alarm_footer", fallback: "Gerçek alarm, saat uygulamasındaki alarm gibi sessiz modda ve Odak'ta da sesli çalar, kilit ekranında tam ekran görünür. Bu yüzden başta sadece İmsak (sabah uyanmak için) seçilidir; gündüz vakitlerinde alarm toplantıda, derste ya da camide de çalar. Seçtiğin vakitlerin önümüzdeki 3 günü kurulur; \"Ertele\" 10 dakika sonra tekrar çaldırır. Alarm çalan vakitlerin bildirimi sessiz gelir; \"Kıldım\" düğmesi bildirimde kalır."))
             }
 
             Section {

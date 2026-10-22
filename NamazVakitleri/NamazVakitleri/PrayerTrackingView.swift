@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 import Adhan
 
 /// "Namaz Takibi": bugün kılınan vakitler, üst üste tamamlanan gün sayısı
@@ -33,6 +34,8 @@ struct PrayerTrackingView: View {
                 todaySection
                 streakSection
                 kazaSection
+                fastingSection
+                backupSection
             }
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
@@ -48,7 +51,54 @@ struct PrayerTrackingView: View {
                 }
             }
             .onReceive(NotificationCenter.default.publisher(for: PrayerTracker.didChange)) { _ in refresh += 1 }
+            .fileImporter(isPresented: $importing, allowedContentTypes: [.json]) { result in
+                guard case .success(let url) = result else { return }
+                let scoped = url.startAccessingSecurityScopedResource()
+                defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+                if let data = try? Data(contentsOf: url), let p = try? TrackingBackup.decode(data) {
+                    pendingRestore = p
+                } else {
+                    backupMessage = loc.t("backup_invalid", fallback: "Bu dosya bir Safa yedeği değil.")
+                }
+            }
+            .alert(loc.t("backup_confirm_title", fallback: "Yedek geri yüklensin mi?"),
+                   isPresented: Binding(get: { pendingRestore != nil }, set: { if !$0 { pendingRestore = nil } }),
+                   presenting: pendingRestore) { p in
+                Button(loc.t("backup_restore", fallback: "Geri Yükle"), role: .destructive) {
+                    TrackingBackup.apply(p)
+                    backupMessage = loc.t("backup_done", fallback: "Yedek geri yüklendi.")
+                }
+                Button(loc.t("common_cancel", fallback: "Vazgeç"), role: .cancel) {}
+            } message: { p in
+                Text(loc.tf("backup_confirm_msg", "%d günlük namaz kaydı ve %d kaza bulundu. Bu telefondaki kayıtların yerine yazılacak.",
+                            p.prayerLog.count, p.kaza.values.reduce(0, +)))
+            }
+            .alert(backupMessage ?? "", isPresented: Binding(get: { backupMessage != nil }, set: { if !$0 { backupMessage = nil } })) {
+                Button(loc.t("common_ok", fallback: "Tamam"), role: .cancel) {}
+            }
         }
+    }
+
+    // MARK: - Yedekleme
+
+    @State private var importing = false
+    @State private var pendingRestore: TrackingBackup.Payload?
+    @State private var backupMessage: String?
+
+    private var backupSection: some View {
+        Section {
+            ShareLink(item: TrackingBackupFile(), preview: SharePreview(loc.t("backup_file_name", fallback: "Safa yedeği"))) {
+                Label(loc.t("backup_export", fallback: "Kayıtları dosyaya yedekle"), systemImage: "square.and.arrow.up")
+            }
+            Button { importing = true } label: {
+                Label(loc.t("backup_import", fallback: "Yedekten geri yükle"), systemImage: "square.and.arrow.down")
+            }
+        } header: {
+            Text(loc.t("backup_title", fallback: "Yedekleme"))
+        } footer: {
+            Text(loc.t("backup_footer", fallback: "Kıldım kayıtları, özel günler, kazalar ve zikir sayıları tek bir dosyaya yazılır. Dosyayı Dosyalar'a, iCloud Drive'a ya da kendine mesajla kaydedebilirsin; yeni telefonda buradan geri yükle. Dosya sadece senin seçtiğin yere gider."))
+        }
+        .tint(AppTheme.accent)
     }
 
     // MARK: - Bugün
@@ -60,7 +110,12 @@ struct PrayerTrackingView: View {
     private func showUndo(name: String, dayKey: String, nowPrayed: Bool) {
         let info = UndoInfo(name: name, dayKey: dayKey, nowPrayed: nowPrayed, id: (undo?.id ?? 0) + 1)
         withAnimation { undo = info }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+        let text = loc.tf(nowPrayed ? "tracking_marked" : "tracking_unmarked",
+                          nowPrayed ? "%@ kılındı olarak işaretlendi" : "%@ işareti kaldırıldı", PrayerTracker.namazName(name))
+        UIAccessibility.post(notification: .announcement, argument: text)
+        // VoiceOver açıkken "Geri Al"a ulaşmak daha uzun sürer.
+        let delay: Double = UIAccessibility.isVoiceOverRunning ? 30 : 10
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
             if undo == info { withAnimation { undo = nil } }
         }
     }
@@ -97,6 +152,16 @@ struct PrayerTrackingView: View {
                 Text(loc.t("tracking_no_location", fallback: "Vakitleri görmek için önce ana sayfayı bir kez aç."))
                     .foregroundStyle(.secondary)
             }
+            // Özel gün (kadınlar): o gün namazdan muaf, seri bozulmaz.
+            Toggle(isOn: Binding(
+                get: { PrayerTracker.isExcused(dayKey: key) },
+                set: { PrayerTracker.setExcused($0, dayKey: key) }
+            )) {
+                Label(loc.t("tracking_excused", fallback: "Bugün özel gün (namazdan muafım)"), systemImage: "moon.zzz")
+            }
+            .tint(AppTheme.accent)
+            .id("excused-\(refresh)")
+            if !PrayerTracker.isExcused(dayKey: key) {
             ForEach(todayTimes, id: \.name) { item in
                 let prayed = PrayerTracker.isPrayed(item.name, dayKey: key)
                 let started = item.date <= Date()
@@ -120,6 +185,7 @@ struct PrayerTrackingView: View {
                 }
                 .disabled(!started)
                 .id("today-\(item.name)-\(refresh)")
+            }
             }
             // Geri Al satırı vakitlerin hemen altında: kaza düğmelerinin üstüne
             // binmesin (çubuk kaybolurken dokunuş alttaki "+"ya gidiyordu).
@@ -159,16 +225,22 @@ struct PrayerTrackingView: View {
 
             HStack(spacing: 0) {
                 ForEach(lastSevenDays, id: \.self) { day in
-                    let count = PrayerTracker.prayedCount(dayKey: PrayerTracker.dayKey(day, timeZone: timeZone))
+                    let dk = PrayerTracker.dayKey(day, timeZone: timeZone)
+                    let count = PrayerTracker.prayedCount(dayKey: dk)
+                    let excused = PrayerTracker.isExcused(dayKey: dk)
                     VStack(spacing: 4) {
                         ZStack {
                             Circle().stroke(Color.secondary.opacity(0.2), lineWidth: 4)
                             Circle()
-                                .trim(from: 0, to: CGFloat(count) / 5)
+                                .trim(from: 0, to: excused ? 0 : CGFloat(count) / 5)
                                 .stroke(AppTheme.accent, style: StrokeStyle(lineWidth: 4, lineCap: .round))
                                 .rotationEffect(.degrees(-90))
-                            Text("\(count)")
-                                .font(.caption2.weight(.semibold))
+                            if excused {
+                                Image(systemName: "moon.zzz").font(.caption2)
+                            } else {
+                                Text("\(count)")
+                                    .font(.caption2.weight(.semibold))
+                            }
                         }
                         .frame(width: 30, height: 30)
                         Text(formatter.string(from: day))
@@ -185,6 +257,33 @@ struct PrayerTrackingView: View {
             .padding(.vertical, 4)
         } header: {
             Text(loc.t("tracking_last7", fallback: "Son 7 gün"))
+        }
+    }
+
+    // MARK: - Kaza orucu
+
+    private var fastingSection: some View {
+        let name = PrayerTracker.fastingKazaName
+        let count = PrayerTracker.kazaCount(name)
+        return Section {
+            Stepper(value: Binding(
+                get: { PrayerTracker.kazaCount(name) },
+                set: { PrayerTracker.setKazaCount($0, for: name) }
+            ), in: 0...99_999) {
+                HStack {
+                    Label(loc.t("tracking_fast_days", fallback: "Kaza orucu (gün)"), systemImage: "moon.haze")
+                    Spacer()
+                    Text("\(count)")
+                        .monospacedDigit()
+                        .foregroundStyle(count > 0 ? AppTheme.accent : .secondary)
+                }
+            }
+            .accessibilityValue("\(count)")
+            .id("fast-\(refresh)")
+        } header: {
+            Text(loc.t("tracking_fast_title", fallback: "Kaza oruçları"))
+        } footer: {
+            Text(loc.t("tracking_fast_footer", fallback: "Ramazan'da tutamadığın günleri + ile ekle. Kaza orucu tuttukça − ile azalt."))
         }
     }
 
@@ -209,6 +308,7 @@ struct PrayerTrackingView: View {
                     }
                 }
                 // Kayıt değişince satır yeniden çizilsin (liste satırları kendiliğinden yenilenmiyordu).
+                .accessibilityValue("\(count)")
                 .id("kaza-\(name)-\(refresh)")
             }
         } header: {

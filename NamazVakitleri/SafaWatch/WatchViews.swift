@@ -30,10 +30,11 @@ struct WatchPrayerPage: View {
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
+            let now = Self.now(context.date)
             if let (coord, tz) = store.location,
-               let days = Optional(PrayerCalculation.upcomingDays(2, coordinate: coord, timeZone: tz, from: context.date)),
+               let days = Optional(PrayerCalculation.upcomingDays(2, coordinate: coord, timeZone: tz, from: now)),
                let today = days.first {
-                let next = days.flatMap(\.times).first { $0.time > context.date }
+                let next = days.flatMap(\.times).first { $0.time > now }
                 ScrollView {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(store.cityName)
@@ -47,10 +48,36 @@ struct WatchPrayerPage: View {
                             Text(loc.x(next.name))
                                 .font(.title3.bold())
                                 .foregroundStyle(accent)
-                            Text(next.time, style: .timer)
-                                .font(.system(.title2, design: .rounded).monospacedDigit().bold())
+                            Group {
+                                if Self.testOffset == 0 { Text(next.time, style: .timer) } else { Text(Self.remaining(from: now, to: next.time)) }
+                            }
+                            .font(.system(.title2, design: .rounded).monospacedDigit().bold())
                         }
-                        if let k = KerahatTimes.current(now: context.date, coordinate: coord, timeZone: tz) {
+                        // Ramazan'da iftar / sahur sayacı
+                        if let fast = RamadanInfo.fastingTarget(now: now, coordinate: coord, timeZone: tz) {
+                            let (title, date): (String, Date) = {
+                                switch fast {
+                                case .iftar(let d): return (loc.t("ramadan_to_iftar", fallback: "İftara kalan"), d)
+                                case .sahur(let d): return (loc.t("ramadan_to_sahur", fallback: "Sahurun bitişine (İmsak) kalan"), d)
+                                }
+                            }()
+                            HStack(spacing: 6) {
+                                Image(systemName: { if case .iftar = fast { return "sunset.fill" } else { return "moon.stars.fill" } }())
+                                    .foregroundStyle(gold)
+                                VStack(alignment: .leading, spacing: 0) {
+                                    Text(title)
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(2)
+                                    Text(Self.remaining(from: now, to: date))
+                                        .font(.system(.body, design: .rounded).monospacedDigit().bold())
+                                        .foregroundStyle(gold)
+                                }
+                            }
+                            .padding(.vertical, 2)
+                            .accessibilityElement(children: .combine)
+                        }
+                        if let k = KerahatTimes.current(now: now, coordinate: coord, timeZone: tz) {
                             Label(loc.t(k.kind.localizationKey, fallback: k.kind.turkishName), systemImage: "exclamationmark.triangle.fill")
                                 .font(.caption2)
                                 .foregroundStyle(gold)
@@ -66,7 +93,7 @@ struct WatchPrayerPage: View {
                                     .monospacedDigit()
                             }
                             .font(.footnote)
-                            .foregroundStyle(item.time < context.date ? .secondary : .primary)
+                            .foregroundStyle(item.time < now ? .secondary : .primary)
                         }
                     }
                     .padding(.horizontal, 4)
@@ -82,6 +109,27 @@ struct WatchPrayerPage: View {
                 }
             }
         }
+    }
+}
+
+extension WatchPrayerPage {
+    /// Ekran testi: -watchTestDate 2027-02-20T14:00 (saat ileri akar).
+    static let testOffset: TimeInterval = {
+        #if DEBUG
+        if let text = UserDefaults.standard.string(forKey: "watchTestDate") {
+            let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd'T'HH:mm"; f.locale = Locale(identifier: "en_US_POSIX")
+            if let d = f.date(from: text) { return d.timeIntervalSinceNow }
+        }
+        #endif
+        return 0
+    }()
+
+    static func now(_ date: Date) -> Date { date.addingTimeInterval(testOffset) }
+
+    /// "02:14:33" (Text(style: .timer) test saatini bilmez, o yüzden elle).
+    static func remaining(from now: Date, to date: Date) -> String {
+        let s = max(0, Int(date.timeIntervalSince(now)))
+        return String(format: "%d:%02d:%02d", s / 3600, (s % 3600) / 60, s % 60)
     }
 }
 

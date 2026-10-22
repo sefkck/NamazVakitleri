@@ -62,6 +62,87 @@ enum SiriPrayerInfo {
     }
 }
 
+/// Siri'de söylenebilen vakit adları ("Safa öğle namazı kaçta").
+enum SiriPrayer: String, AppEnum {
+    case imsak, gunes, ogle, ikindi, aksam, yatsi
+
+    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Vakit"
+    static var caseDisplayRepresentations: [SiriPrayer: DisplayRepresentation] = [
+        .imsak: DisplayRepresentation(title: "İmsak", synonyms: ["sabah", "sabah namazı", "imsak vakti", "fajr"]),
+        .gunes: DisplayRepresentation(title: "Güneş", synonyms: ["güneş doğuşu", "sunrise"]),
+        .ogle: DisplayRepresentation(title: "Öğle", synonyms: ["öğle namazı", "öğlen", "dhuhr"]),
+        .ikindi: DisplayRepresentation(title: "İkindi", synonyms: ["ikindi namazı", "asr"]),
+        .aksam: DisplayRepresentation(title: "Akşam", synonyms: ["akşam namazı", "iftar", "maghrib"]),
+        .yatsi: DisplayRepresentation(title: "Yatsı", synonyms: ["yatsı namazı", "isha"])
+    ]
+
+    var turkishName: String {
+        switch self {
+        case .imsak: return "İmsak"
+        case .gunes: return "Güneş"
+        case .ogle: return "Öğle"
+        case .ikindi: return "İkindi"
+        case .aksam: return "Akşam"
+        case .yatsi: return "Yatsı"
+        }
+    }
+}
+
+extension SiriPrayerInfo {
+    /// "Bugün Öğle 12:54." (geçtiyse yarınki de söylenir)
+    static func prayerTimeAnswer(_ prayer: SiriPrayer, now: Date = Date()) -> String {
+        let loc = LocalizationManager.shared
+        guard let (coordinate, tz) = savedLocation() else {
+            return loc.t("siri_no_location", fallback: "Önce uygulamayı bir kez açıp konumunu belirle.")
+        }
+        let days = PrayerCalculation.upcomingDays(2, coordinate: coordinate, timeZone: tz, from: now)
+        guard let today = days.first?.times.first(where: { $0.name == prayer.turkishName }) else {
+            return loc.t("siri_no_times", fallback: "Namaz vakitleri hesaplanamadı.")
+        }
+        if today.time > now {
+            return loc.tf("siri_prayer_today", "Bugün %@ vakti saat %@. %@ kaldı.",
+                          loc.x(prayer.turkishName), timeText(today.time, tz), remainingText(from: now, to: today.time))
+        }
+        let tomorrow = days.dropFirst().first?.times.first(where: { $0.name == prayer.turkishName })
+        return loc.tf("siri_prayer_passed", "Bugün %@ vakti saat %@ idi. Yarın saat %@.",
+                      loc.x(prayer.turkishName), timeText(today.time, tz), tomorrow.map { timeText($0.time, tz) } ?? "—")
+    }
+
+    /// "Bugünkü vakitler: İmsak 05:50, Güneş 07:15, …"
+    static func todayTimesAnswer(now: Date = Date()) -> String {
+        let loc = LocalizationManager.shared
+        guard let (coordinate, tz) = savedLocation(),
+              let today = PrayerCalculation.upcomingDays(1, coordinate: coordinate, timeZone: tz, from: now).first else {
+            return loc.t("siri_no_location", fallback: "Önce uygulamayı bir kez açıp konumunu belirle.")
+        }
+        let list = today.times.map { "\(loc.x($0.name)) \(timeText($0.time, tz))" }.joined(separator: ", ")
+        return loc.tf("siri_today_list", "Bugünkü vakitler: %@.", list)
+    }
+}
+
+struct PrayerTimeIntent: AppIntent {
+    static var title: LocalizedStringResource = "Vakit Kaçta?"
+    static var description = IntentDescription("Seçilen vaktin bugünkü saatini söyler.")
+
+    @Parameter(title: "Vakit")
+    var prayer: SiriPrayer
+
+    @MainActor
+    func perform() async throws -> some IntentResult & ProvidesDialog {
+        .result(dialog: IntentDialog(stringLiteral: SiriPrayerInfo.prayerTimeAnswer(prayer)))
+    }
+}
+
+struct TodayTimesIntent: AppIntent {
+    static var title: LocalizedStringResource = "Bugünkü Vakitler"
+    static var description = IntentDescription("Bugünün bütün namaz vakitlerini söyler.")
+
+    @MainActor
+    func perform() async throws -> some IntentResult & ProvidesDialog {
+        .result(dialog: IntentDialog(stringLiteral: SiriPrayerInfo.todayTimesAnswer()))
+    }
+}
+
 struct NextPrayerIntent: AppIntent {
     static var title: LocalizedStringResource = "Sıradaki Namaz"
     static var description = IntentDescription("Sıradaki namazı ve kalan süreyi söyler.")
@@ -102,6 +183,30 @@ struct SafaShortcuts: AppShortcutsProvider {
             ],
             shortTitle: "Kerahat Vakti",
             systemImageName: "exclamationmark.triangle"
+        )
+        AppShortcut(
+            intent: PrayerTimeIntent(),
+            phrases: [
+                "\(.applicationName) \(\.$prayer) kaçta",
+                "\(.applicationName) \(\.$prayer) namazı kaçta",
+                "\(.applicationName) \(\.$prayer) vakti",
+                "\(.applicationName) \(\.$prayer) ne zaman",
+                "\(.applicationName) \(\.$prayer) namazı saat kaçta",
+                "\(.applicationName) when is \(\.$prayer)"
+            ],
+            shortTitle: "Vakit Kaçta?",
+            systemImageName: "sun.max"
+        )
+        AppShortcut(
+            intent: TodayTimesIntent(),
+            phrases: [
+                "\(.applicationName) bugünkü vakitler",
+                "\(.applicationName) namaz vakitleri",
+                "\(.applicationName) bugün namaz vakitleri",
+                "\(.applicationName) today's prayer times"
+            ],
+            shortTitle: "Bugünkü Vakitler",
+            systemImageName: "list.bullet"
         )
     }
 }

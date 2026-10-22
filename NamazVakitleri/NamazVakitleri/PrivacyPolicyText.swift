@@ -16,10 +16,10 @@ enum PrivacyPolicyText {
     }
 
     static func updated(_ lang: AppLanguage) -> String {
-        [.turkish: "Son güncelleme: 21 Ekim 2026",
-         .english: "Last updated: October 21, 2026",
-         .german: "Zuletzt aktualisiert: 21. Oktober 2026",
-         .arabic: "آخر تحديث: 21 أكتوبر 2026"][lang] ?? "Son güncelleme: 21 Ekim 2026"
+        [.turkish: "Son güncelleme: 22 Ekim 2026",
+         .english: "Last updated: October 22, 2026",
+         .german: "Zuletzt aktualisiert: 22. Oktober 2026",
+         .arabic: "آخر تحديث: 22 أكتوبر 2026"][lang] ?? "Son güncelleme: 22 Ekim 2026"
     }
 
     static let sections: [Section] = [
@@ -38,17 +38,17 @@ enum PrivacyPolicyText {
                    .arabic: "يُستخدم موقعك لتحديد مواقيت الصلاة واتجاه القبلة والمساجد القريبة. تُحسب المواقيت والقبلة على هاتفك. لعرض اسم المدينة والبحث عن المساجد والعناوين يُرسَل موقعك إلى خدمة الخرائط من Apple. لا يُرسَل موقعك إلينا؛ ليس لدينا خادم. يُحفظ آخر موقع معروف على هاتفك فقط لكي تعمل التنبيهات والأدوات (Widgets). يمكنك إيقاف إذن الموقع من إعدادات iPhone في أي وقت أو اختيار مدينة يدويًا."]),
         Section(
             title: [.turkish: "3. Bildirimler", .english: "3. Notifications", .german: "3. Mitteilungen", .arabic: "3. الإشعارات"],
-            body: [.turkish: "Namaz alarmları ve hatırlatmalar telefonunuzda planlanır; bir sunucudan gönderilmez. Bildirim izni sadece sizin onayınızla verilir ve iPhone Ayarları'ndan her zaman kapatılabilir.",
-                   .english: "Prayer alarms and reminders are scheduled on your phone; they are not sent from a server. Notification permission is given only with your consent and can be turned off in iPhone Settings at any time.",
-                   .german: "Gebetsalarme und Erinnerungen werden auf deinem Telefon geplant; sie werden nicht von einem Server gesendet. Die Mitteilungserlaubnis wird nur mit deiner Zustimmung erteilt und kann jederzeit in den iPhone-Einstellungen ausgeschaltet werden.",
-                   .arabic: "تُجدوَل تنبيهات الصلاة والتذكيرات على هاتفك ولا تُرسَل من خادم. يُمنح إذن الإشعارات بموافقتك فقط، ويمكن إيقافه من إعدادات iPhone في أي وقت."]),
+            body: [.turkish: "Namaz alarmları ve hatırlatmalar telefonunuzda planlanır; bir sunucudan gönderilmez. Bildirim izni sadece sizin onayınızla verilir ve iPhone Ayarları'ndan her zaman kapatılabilir. İsteğe bağlı \"Gerçek alarm\" ve kilit ekranındaki iftar/sahur sayacı da iPhone'un kendi alarm ve Canlı Etkinlik özellikleriyle telefonunuzda çalışır; izinleri iPhone Ayarları'ndan kapatılabilir.",
+                   .english: "Prayer alarms and reminders are scheduled on your phone; they are not sent from a server. Notification permission is given only with your consent and can be turned off in iPhone Settings at any time. The optional \"Real alarm\" and the iftar/sahur countdown on the Lock Screen also run on your phone with iPhone's own alarm and Live Activity features; you can turn their permissions off in iPhone Settings.",
+                   .german: "Gebetsalarme und Erinnerungen werden auf deinem Telefon geplant; sie werden nicht von einem Server gesendet. Die Mitteilungserlaubnis wird nur mit deiner Zustimmung erteilt und kann jederzeit in den iPhone-Einstellungen ausgeschaltet werden. Der optionale „Echte Wecker“ und der Iftar-/Sahur-Countdown auf dem Sperrbildschirm laufen ebenfalls auf deinem Telefon über die Wecker- und Live-Aktivitäten-Funktionen des iPhone; ihre Erlaubnis lässt sich in den iPhone-Einstellungen ausschalten.",
+                   .arabic: "تُجدوَل تنبيهات الصلاة والتذكيرات على هاتفك ولا تُرسَل من خادم. يُمنح إذن الإشعارات بموافقتك فقط، ويمكن إيقافه من إعدادات iPhone في أي وقت. يعمل «المنبّه الحقيقي» الاختياري وعدّاد الإفطار/السحور على شاشة القفل على هاتفك أيضًا عبر ميزتي المنبّه والأنشطة المباشرة في iPhone، ويمكن إيقاف إذنهما من إعدادات iPhone."]),
         Section(
             title: [.turkish: "4. Telefonunuzda saklanan bilgiler", .english: "4. Data stored on your phone",
                     .german: "4. Auf deinem Telefon gespeicherte Daten", .arabic: "4. البيانات المحفوظة على هاتفك"],
-            body: [.turkish: "Ayarlarınız, \"Kıldım\" kayıtlarınız, kaza namazı sayılarınız, zikir sayılarınız ve indirilen Kur'an metinleri sadece telefonunuzda saklanır. Uygulamada kullanıcı hesabı yoktur. Bu bilgiler bize ya da başkasına gönderilmez. Uygulamayı silince bu bilgiler de silinir.",
-                   .english: "Your settings, \"I prayed\" records, missed (qada) prayer counts, dhikr counts and downloaded Quran texts are stored only on your phone. The app has no user accounts. This data is not sent to us or to anyone else. When you delete the app, this data is deleted too.",
-                   .german: "Deine Einstellungen, „Gebetet“-Einträge, nachzuholende Gebete, Dhikr-Zähler und heruntergeladene Korantexte werden nur auf deinem Telefon gespeichert. Die App hat keine Benutzerkonten. Diese Daten werden weder an uns noch an andere gesendet. Wenn du die App löschst, werden diese Daten ebenfalls gelöscht.",
-                   .arabic: "تُحفظ إعداداتك وسجلات «صلّيت» وأعداد صلوات القضاء وعدّاد الذكر ونصوص القرآن المُنزّلة على هاتفك فقط. لا توجد حسابات مستخدمين في التطبيق. لا تُرسَل هذه البيانات إلينا ولا إلى غيرنا. عند حذف التطبيق تُحذف هذه البيانات أيضًا."]),
+            body: [.turkish: "Ayarlarınız, \"Kıldım\" kayıtlarınız, özel günleriniz, kaza namazı ve kaza orucu sayılarınız, zikir sayılarınız, indirilen Kur'an metinleri ve hafız sesleri sadece telefonunuzda saklanır. Uygulamada kullanıcı hesabı yoktur. Bu bilgiler bize ya da başkasına gönderilmez. Uygulamayı silince bu bilgiler de silinir. \"Kayıtları dosyaya yedekle\" düğmesine basarsanız bu kayıtlar bir dosyaya yazılır; dosya sadece sizin seçtiğiniz yere (Dosyalar, iCloud Drive, mesaj vb.) gider.",
+                   .english: "Your settings, \"I prayed\" records, excused days, missed (qada) prayer and fasting counts, dhikr counts, downloaded Quran texts and recitations are stored only on your phone. The app has no user accounts. This data is not sent to us or to anyone else. When you delete the app, this data is deleted too. If you tap \"Back up records to a file\", these records are written to a file that goes only where you choose (Files, iCloud Drive, a message, etc.).",
+                   .german: "Deine Einstellungen, „Gebetet“-Einträge, befreite Tage, nachzuholende Gebete und Fasten, Dhikr-Zähler, heruntergeladene Korantexte und Rezitationen werden nur auf deinem Telefon gespeichert. Die App hat keine Benutzerkonten. Diese Daten werden weder an uns noch an andere gesendet. Wenn du die App löschst, werden diese Daten ebenfalls gelöscht. Tippst du auf „Einträge in Datei sichern“, werden sie in eine Datei geschrieben, die nur dorthin geht, wo du sie ablegst (Dateien, iCloud Drive, Nachricht usw.).",
+                   .arabic: "تُحفظ إعداداتك وسجلات «صلّيت» وأيام العذر وأعداد صلوات وصيام القضاء وعدّاد الذكر ونصوص القرآن والتلاوات المُنزّلة على هاتفك فقط. لا توجد حسابات مستخدمين في التطبيق. لا تُرسَل هذه البيانات إلينا ولا إلى غيرنا. عند حذف التطبيق تُحذف هذه البيانات أيضًا. إذا ضغطت «نسخ السجلات إلى ملف» تُكتب هذه السجلات في ملف لا يذهب إلا إلى حيث تختار (الملفات، iCloud Drive، رسالة…)."]),
         Section(
             title: [.turkish: "5. İnternetten alınan içerik", .english: "5. Content loaded from the internet",
                     .german: "5. Inhalte aus dem Internet", .arabic: "5. المحتوى المُحمَّل من الإنترنت"],
