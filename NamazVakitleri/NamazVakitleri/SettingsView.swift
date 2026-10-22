@@ -77,6 +77,19 @@ struct SettingsView: View {
     @State private var ishaAdjust = PrayerCalculation.manualAdjustment(for: "isha")
 
     var body: some View {
+        #if DEBUG
+        // Ekran resmi: -uiSettingsPage notifications (Bildirimler sayfası doğrudan açılır)
+        if UserDefaults.standard.string(forKey: "uiSettingsPage") == "notifications" {
+            NavigationView { notificationsPage }
+        } else {
+            hub
+        }
+        #else
+        hub
+        #endif
+    }
+
+    private var hub: some View {
         NavigationView {
             List {
                 Section {
@@ -660,7 +673,7 @@ struct SettingsView: View {
     static func mealSourceName(_ lang: AppLanguage) -> String? {
         switch lang {
         case .turkish: return "Diyanet Vakfı"
-        case .english: return "Saheeh International"
+        case .english: return "Marmaduke Pickthall (1930)"
         case .german: return "Bubenheim & Elyas"
         case .arabic: return nil
         }

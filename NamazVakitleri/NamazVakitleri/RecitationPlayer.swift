@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import AVFoundation
+import MediaPlayer
 
 /// Hafız sesiyle ayet ayet Kur'an okuma (Mişari Raşid el-Afasi).
 /// Ses, Islamic Network (alquran.cloud) sunucusundan ayet ayet çalınır;
@@ -68,18 +69,59 @@ final class RecitationPlayer: ObservableObject {
         retriedIndex = nil
         try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio)
         try? AVAudioSession.sharedInstance().setActive(true)
+        setupRemoteCommands()
         playAyah(at: index)
     }
 
     func pause() {
         player?.pause()
         isPlaying = false
+        updateNowPlaying()
     }
 
     func resume() {
         guard player != nil else { return }
         player?.play()
         isPlaying = true
+        updateNowPlaying()
+    }
+
+    func skip(by offset: Int) {
+        guard let i = currentIndex, ayahNumbers.indices.contains(i + offset) else { return }
+        playAyah(at: i + offset)
+    }
+
+    // MARK: - Kilit ekranı / Denetim Merkezi / kulaklık düğmeleri
+
+    private var remoteCommandsReady = false
+
+    private func setupRemoteCommands() {
+        guard !remoteCommandsReady else { return }
+        remoteCommandsReady = true
+        let c = MPRemoteCommandCenter.shared()
+        c.playCommand.addTarget { [weak self] _ in self?.resume(); return .success }
+        c.pauseCommand.addTarget { [weak self] _ in self?.pause(); return .success }
+        c.togglePlayPauseCommand.addTarget { [weak self] _ in
+            guard let self else { return .commandFailed }
+            self.isPlaying ? self.pause() : self.resume()
+            return .success
+        }
+        c.nextTrackCommand.addTarget { [weak self] _ in self?.skip(by: 1); return .success }
+        c.previousTrackCommand.addTarget { [weak self] _ in self?.skip(by: -1); return .success }
+    }
+
+    /// Kilit ekranında "Yâsîn · 5. ayet · Mişari Raşid el-Afasi".
+    private func updateNowPlaying() {
+        guard let index = currentIndex else {
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+            return
+        }
+        let loc = LocalizationManager.shared
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = [
+            MPMediaItemPropertyTitle: "\(sourceTitle ?? loc.t("tab_quran", fallback: "Kur'an")) · \(loc.tf("recitation_now", "%d. ayet okunuyor", index + 1))",
+            MPMediaItemPropertyArtist: Self.localizedReciterName,
+            MPNowPlayingInfoPropertyPlaybackRate: isPlaying ? 1.0 : 0.0
+        ]
     }
 
     func stop() {
@@ -91,6 +133,7 @@ final class RecitationPlayer: ObservableObject {
         isLoading = false
         sourceID = nil
         sourceTitle = nil
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     }
 
     /// Sıradaki ayetin sırası; son ayetten sonra nil.
@@ -140,6 +183,7 @@ final class RecitationPlayer: ObservableObject {
         }
         newPlayer.play()
         isPlaying = true
+        updateNowPlaying()
     }
 
     private func cleanupObservers() {

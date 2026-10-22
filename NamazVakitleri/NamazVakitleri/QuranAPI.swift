@@ -60,7 +60,8 @@ final class QuranAPI {
         // ardışık ayetlerde tekrarlıyor (tüm Kur'an'da 841 ayet). Diyanet
         // Vakfı meali ayet ayet çevrilmiş (sadece 10 tekrar).
         case .turkish: return "tr.vakfi"
-        case .english: return "en.sahih"
+        // Pickthall (1930): yazar 1936'da öldü; telifsiz. Saheeh International'ın kullanım izni yoktu.
+        case .english: return "en.pickthall"
         case .german: return "de.bubenheim"
         case .arabic: return nil
         }

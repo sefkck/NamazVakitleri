@@ -392,9 +392,9 @@ enum SelfTests {
     // MARK: - İçerik ve ayarlar
 
     private static func contentTests() {
-        check("T25", "Meal baskıları sabit (tr.vakfi / en.sahih / de.bubenheim / ar yok)",
+        check("T25", "Meal baskıları sabit (tr.vakfi / en.pickthall / de.bubenheim / ar yok)",
               QuranAPI.mealEdition(for: .turkish) == "tr.vakfi"
-              && QuranAPI.mealEdition(for: .english) == "en.sahih"
+              && QuranAPI.mealEdition(for: .english) == "en.pickthall"
               && QuranAPI.mealEdition(for: .german) == "de.bubenheim"
               && QuranAPI.mealEdition(for: .arabic) == nil)
 
@@ -907,6 +907,12 @@ enum SelfTests {
             }
             let splash = LocalizationManager.translate("splash_subtitle", language: .turkish, fallback: nil) == "Namaz Vakitleri"
             check("T88", "Uygulama adı: gizlilik, Hakkında ve açılış ekranında yeni ad (4 dil); eski ad yok", privacyOK && oldGone && aboutOK && splash)
+        }
+
+        // T89: Telefon kilitliyken Kur'an sesi sürer (arka plan ses izni); kilit ekranı düğmeleri ayet atlar, sınırda durur.
+        do {
+            let modes = Bundle.main.object(forInfoDictionaryKey: "UIBackgroundModes") as? [String] ?? []
+            check("T89", "Arka planda Kur'an sesi izni var (audio + fetch)", modes.contains("audio") && modes.contains("fetch"), "\(modes)")
         }
 
         // T35: Çift Besmele kaldırılıyor (Fâtiha ve Tevbe hariç).
