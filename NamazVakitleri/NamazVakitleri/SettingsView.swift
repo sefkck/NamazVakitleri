@@ -225,6 +225,9 @@ struct SettingsView: View {
                     Text(loc.t("settings_dark")).tag(true)
                 }
                 .pickerStyle(.segmented)
+                // Widget'lar da hemen yeni temaya geçsin (ayarlar sayfası açıkken
+                // RootView'daki onChange'e güvenmiyoruz).
+                .onChange(of: isDarkTheme) { _, newValue in PrayerWidgetData.saveDarkTheme(newValue) }
             } header: {
                 Text(loc.t("settings_appearance"))
             }

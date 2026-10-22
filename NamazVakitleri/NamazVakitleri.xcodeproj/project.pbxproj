@@ -90,6 +90,7 @@
 				DisplayFormat.swift,
 				EsmaWidgetView.swift,
 				EsmaulHusna.swift,
+				HomeWidgetViews.swift,
 				IftarActivityAttributes.swift,
 				Localization.swift,
 				LockScreenWidgetViews.swift,

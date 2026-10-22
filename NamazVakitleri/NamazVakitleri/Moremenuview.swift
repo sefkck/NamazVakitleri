@@ -10,6 +10,7 @@ struct MoreMenuView: View {
     @State private var activeSheet: Destination?
     #if DEBUG
     @State private var showLockWidgetsPreview = false
+    @State private var showWidgetGallery = false
     #endif
 
     private enum Destination: Identifiable {
@@ -55,10 +56,12 @@ struct MoreMenuView: View {
             case "settings": activeSheet = .settings
             case "mosques": activeSheet = .mosques
             case "lockWidgets": showLockWidgetsPreview = true
+            case "widgetGallery": showWidgetGallery = true
             default: break
             }
         }
         .fullScreenCover(isPresented: $showLockWidgetsPreview) { LockScreenWidgetsPreview() }
+        .fullScreenCover(isPresented: $showWidgetGallery) { WidgetGalleryPreview() }
         #endif
         .onAppear {
             // Dil yönü değişince ekran yeniden kuruldu: Ayarlar'a geri dön.

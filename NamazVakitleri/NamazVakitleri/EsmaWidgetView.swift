@@ -9,7 +9,22 @@ struct EsmaWidgetView: View {
     let medium: Bool
 
     var body: some View {
-        if medium {
+        if language == .arabic {
+            // Arapçada okunuş ve anlam yok: isim ortada büyük, altında küçük not.
+            VStack(spacing: medium ? 6 : 4) {
+                header
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Spacer(minLength: 0)
+                arabic(size: medium ? 46 : 36)
+                Text("من أسماء الله الحسنى")
+                    .font(.system(size: medium ? 12 : 10.5))
+                    .foregroundStyle(AppTheme.textSecondary(colorScheme))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                Spacer(minLength: 0)
+            }
+            .padding(medium ? 14 : 12)
+        } else if medium {
             VStack(alignment: .leading, spacing: 6) {
                 header
                 HStack(spacing: 12) {

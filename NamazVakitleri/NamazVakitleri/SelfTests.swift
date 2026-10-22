@@ -943,6 +943,14 @@ enum SelfTests {
                   all.count == 42 && numbered && filled && langs && d1 != d2, "adet=\(all.count)")
         }
 
+        // T92: Widget yazıları: Türkçe büyük harf "SURESİ" / "SIRADAKİ" (eskiden "SURESI"); ayet widget'ı küçük boyda 5 satır.
+        do {
+            let tr = "Bakara Suresi".uppercased(with: Locale(identifier: "tr_TR"))
+            let caption = "Sıradaki Namaz".uppercased(with: Locale(identifier: "tr_TR"))
+            check("T92", "Widget başlıkları Türkçe büyük harfle doğru (SURESİ, SIRADAKİ NAMAZ)",
+                  tr == "BAKARA SURESİ" && caption == "SIRADAKİ NAMAZ" && AppLanguage.turkish.locale.identifier.hasPrefix("tr"))
+        }
+
         // T35: Çift Besmele kaldırılıyor (Fâtiha ve Tevbe hariç).
         let b = QuranAPI.basmala
         let bakara = QuranAPI.removingLeadingBasmala([QuranAyah(number: 8, text: b + " الٓمٓ", numberInSurah: 1)], surah: 2)

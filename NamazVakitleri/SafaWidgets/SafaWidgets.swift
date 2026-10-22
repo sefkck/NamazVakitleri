@@ -39,21 +39,7 @@ struct ThemedWidgetBackground<Content: View>: View {
         LocalizationManager.sharedLanguage().isRightToLeft ? .rightToLeft : .leftToRight
     }
 
-    private var backgroundView: some View {
-        ZStack {
-            AppTheme.background(colorScheme)
-            LinearGradient(
-                colors: [AppTheme.accent.opacity(colorScheme == .dark ? 0.16 : 0.08), .clear],
-                startPoint: .topTrailing,
-                endPoint: .center
-            )
-            LinearGradient(
-                colors: [AppTheme.gold.opacity(colorScheme == .dark ? 0.10 : 0.06), .clear],
-                startPoint: .bottomLeading,
-                endPoint: .center
-            )
-        }
-    }
+    private var backgroundView: some View { WidgetBackdrop(colorScheme: colorScheme) }
 
     var body: some View {
         content
@@ -64,54 +50,7 @@ struct ThemedWidgetBackground<Content: View>: View {
     }
 }
 
-/// Namaz vakti adına göre uygun bir SF Symbol ikon döndürür ("Yarın
-/// İmsak" gibi önekli isimleri de yakalar).
-private func prayerIcon(for name: String) -> String {
-    if name.contains("İmsak") { return "moon.stars.fill" }
-    if name.contains("Güneş") { return "sunrise.fill" }
-    if name.contains("Öğle") { return "sun.max.fill" }
-    if name.contains("İkindi") { return "sun.haze.fill" }
-    if name.contains("Akşam") { return "sunset.fill" }
-    if name.contains("Yatsı") { return "moon.fill" }
-    return "clock.fill"
-}
-
-/// Küçük, degrade dolgulu, ikonlu rozet - başlıkların yanında dekoratif
-/// olarak kullanılıyor.
-private struct IconBadge: View {
-    let systemName: String
-    var size: CGFloat = 34
-
-    var body: some View {
-        ZStack {
-            Circle()
-                .fill(
-                    LinearGradient(
-                        colors: [AppTheme.accent, AppTheme.gold],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-            Image(systemName: systemName)
-                .font(.system(size: size * 0.5, weight: .semibold))
-                .foregroundStyle(.white)
-        }
-        .frame(width: size, height: size)
-        .shadow(color: AppTheme.accent.opacity(0.35), radius: 4, y: 2)
-    }
-}
-
 // MARK: - 1) Sıradaki Namaz Widget'ı
-
-struct PrayerEntry: TimelineEntry {
-    let date: Date
-    let nextPrayerName: String
-    let nextPrayerDate: Date?
-    let cityName: String
-    let dailyTimes: [PrayerWidgetData.DailyPrayerTime]
-    /// Vakitlerin gösterileceği saat dilimi (uygulamada seçili konumunki).
-    var timeZone: TimeZone = .current
-}
 
 struct PrayerTimelineProvider: TimelineProvider {
     func placeholder(in context: Context) -> PrayerEntry {
@@ -153,104 +92,6 @@ struct PrayerTimelineProvider: TimelineProvider {
 
     private func fallbackEntry() -> PrayerEntry {
         PrayerEntry(date: Date(), nextPrayerName: LocalizationManager.tShared("widget_open_app", fallback: "Uygulamayı Açın"), nextPrayerDate: nil, cityName: LocalizationManager.tShared("widget_waiting", fallback: "Veri bekleniyor"), dailyTimes: [])
-    }
-}
-
-struct SmallPrayerWidgetView: View {
-    @Environment(\.colorScheme) private var colorScheme
-    let entry: PrayerEntry
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                IconBadge(systemName: prayerIcon(for: entry.nextPrayerName), size: 28)
-                Text(LocalizationManager.tShared("home_next_prayer", fallback: "Sıradaki Namaz"))
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(AppTheme.textSecondary(colorScheme))
-                    .lineLimit(1)
-            }
-
-            Text(LocalizationManager.xShared(entry.nextPrayerName))
-                .font(.system(size: 22, weight: .bold, design: .rounded))
-                .foregroundStyle(AppTheme.accent)
-                .lineLimit(1)
-                .minimumScaleFactor(0.55)
-
-            Spacer(minLength: 2)
-
-            if let date = entry.nextPrayerDate {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(date, style: .timer)
-                        .font(.system(size: 17, weight: .semibold, design: .rounded).monospacedDigit())
-                        .minimumScaleFactor(0.8)
-                        .lineLimit(1)
-                    Text(date, style: .time)
-                        .font(.system(size: 11))
-                        .foregroundStyle(AppTheme.textSecondary(colorScheme))
-                        .environment(\.timeZone, entry.timeZone)
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(AppTheme.accentSoft(colorScheme))
-                )
-            }
-        }
-        .padding(14)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-    }
-}
-
-struct MediumPrayerWidgetView: View {
-    @Environment(\.colorScheme) private var colorScheme
-    let entry: PrayerEntry
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 10) {
-                IconBadge(systemName: prayerIcon(for: entry.nextPrayerName), size: 36)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(LocalizationManager.tShared("home_next_prayer", fallback: "Sıradaki Namaz"))
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(AppTheme.textSecondary(colorScheme))
-                    Text(LocalizationManager.xShared(entry.nextPrayerName))
-                        .font(.system(size: 23, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppTheme.accent)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.6)
-                }
-
-                Spacer(minLength: 0)
-            }
-
-            if let date = entry.nextPrayerDate {
-                HStack(spacing: 6) {
-                    Text(date, style: .timer)
-                        .font(.system(size: 16, weight: .semibold, design: .rounded).monospacedDigit())
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                    Text("·")
-                        .foregroundStyle(AppTheme.textSecondary(colorScheme))
-                    Text(date, style: .time)
-                        .font(.system(size: 13))
-                        .foregroundStyle(AppTheme.textSecondary(colorScheme))
-                        .environment(\.timeZone, entry.timeZone)
-                    Spacer(minLength: 0)
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 7)
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(AppTheme.accentSoft(colorScheme))
-                )
-            }
-
-            Spacer(minLength: 0)
-        }
-        .padding(16)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
 }
 
@@ -305,87 +146,12 @@ struct SafaDailyPrayerWidget: Widget {
     @ViewBuilder
     private func contentView(for entry: PrayerEntry) -> some View {
         ThemedWidgetBackground {
-            DailyPrayerListView(entry: entry)
+            DailyFamilyView(entry: entry)
         }
-    }
-}
-
-struct DailyPrayerListView: View {
-    @Environment(\.colorScheme) private var colorScheme
-    let entry: PrayerEntry
-
-    private var formatter: DateFormatter {
-        let f = DateFormatter()
-        f.dateFormat = "HH:mm"
-        f.timeZone = entry.timeZone
-        return f
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 6) {
-                Image(systemName: "mappin.circle.fill")
-                    .font(.system(size: 11))
-                    .foregroundStyle(AppTheme.accent)
-                Text(entry.cityName)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(AppTheme.textSecondary(colorScheme))
-                Spacer()
-                Text(LocalizationManager.tShared("widget_today", fallback: "BUGÜN"))
-                    .font(.system(size: 10, weight: .semibold))
-                    .tracking(0.5)
-                    .foregroundStyle(AppTheme.textSecondary(colorScheme))
-            }
-
-            if entry.dailyTimes.isEmpty {
-                Spacer()
-                Text(LocalizationManager.tShared("widget_open_hint", fallback: "Namaz vakitleri için uygulamayı bir kez aç."))
-                    .font(.caption)
-                    .foregroundStyle(AppTheme.textSecondary(colorScheme))
-                Spacer()
-            } else {
-                VStack(spacing: 0) {
-                    ForEach(entry.dailyTimes, id: \.name) { prayer in
-                        let isNext = prayer.name == entry.nextPrayerName
-
-                        HStack(spacing: 10) {
-                            Image(systemName: prayerIcon(for: prayer.name))
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(isNext ? .white : AppTheme.gold)
-                                .frame(width: 22)
-
-                            Text(LocalizationManager.xShared(prayer.name))
-                                .font(.system(size: 14, weight: isNext ? .bold : .regular))
-                                .foregroundStyle(isNext ? .white : AppTheme.textPrimary(colorScheme))
-
-                            Spacer()
-
-                            Text(DisplayFormat.time(prayer.time, timeZone: entry.timeZone, compact: true))
-                                .font(.system(size: 14, weight: isNext ? .bold : .regular).monospacedDigit())
-                                .foregroundStyle(isNext ? .white : AppTheme.textSecondary(colorScheme))
-                        }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 7)
-                        .background(
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(isNext ? AnyShapeStyle(AppTheme.accent) : AnyShapeStyle(Color.clear))
-                        )
-                    }
-                }
-            }
-        }
-        .padding(14)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
 }
 
 // MARK: - 3) Düzenli Aralıklarla Değişen Ayet Widget'ı
-
-struct AyahEntry: TimelineEntry {
-    let date: Date
-    let reference: String
-    let text: String
-}
 
 struct AyahTimelineProvider: TimelineProvider {
     func placeholder(in context: Context) -> AyahEntry {
@@ -418,45 +184,6 @@ struct AyahTimelineProvider: TimelineProvider {
     }
 }
 
-struct AyahWidgetView: View {
-    @Environment(\.colorScheme) private var colorScheme
-    let entry: AyahEntry
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Image(systemName: "quote.opening")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundStyle(AppTheme.gold)
-                Spacer()
-                Image(systemName: "sparkles")
-                    .font(.system(size: 12))
-                    .foregroundStyle(AppTheme.gold.opacity(0.6))
-            }
-
-            Text(entry.text)
-                .font(.system(size: 14, weight: .medium, design: .serif))
-                .italic()
-                .foregroundStyle(AppTheme.textPrimary(colorScheme))
-                .lineLimit(4)
-                .fixedSize(horizontal: false, vertical: true)
-
-            Spacer(minLength: 4)
-
-            Rectangle()
-                .fill(AppTheme.gold.opacity(0.4))
-                .frame(height: 1)
-
-            Text(entry.reference.uppercased())
-                .font(.system(size: 9, weight: .semibold))
-                .tracking(0.5)
-                .foregroundStyle(AppTheme.textSecondary(colorScheme))
-        }
-        .padding(14)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-    }
-}
-
 struct SafaAyahWidget: Widget {
     let kind: String = "SafaAyahWidget"
 
@@ -472,7 +199,7 @@ struct SafaAyahWidget: Widget {
     @ViewBuilder
     private func contentView(for entry: AyahEntry) -> some View {
         ThemedWidgetBackground {
-            AyahWidgetView(entry: entry)
+            AyahFamilyView(entry: entry)
         }
     }
 }
@@ -522,4 +249,17 @@ struct SafaWidgetsBundle: WidgetBundle {
         IftarLiveActivityWidget()
         PrayerAlarmLiveActivity()
     }
+}
+
+/// Boyutu WidgetKit'ten okuyup ortak görünüme verir.
+private struct DailyFamilyView: View {
+    @Environment(\.widgetFamily) private var family
+    let entry: PrayerEntry
+    var body: some View { DailyPrayerListView(family: family, entry: entry) }
+}
+
+private struct AyahFamilyView: View {
+    @Environment(\.widgetFamily) private var family
+    let entry: AyahEntry
+    var body: some View { AyahWidgetView(family: family, entry: entry) }
 }
