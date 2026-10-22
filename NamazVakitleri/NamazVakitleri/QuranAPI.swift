@@ -62,7 +62,9 @@ final class QuranAPI {
         case .turkish: return "tr.vakfi"
         // Pickthall (1930): yazar 1936'da öldü; telifsiz. Saheeh International'ın kullanım izni yoktu.
         case .english: return "en.pickthall"
-        case .german: return "de.bubenheim"
+        // Bubenheim & Elyas için Kral Fahd Kompleksi'nden izin istendi (22.10.2026);
+        // izin gelene kadar telifsiz İngilizce Pickthall gösterilir.
+        case .german: return "en.pickthall"
         case .arabic: return nil
         }
     }

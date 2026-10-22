@@ -673,7 +673,7 @@ struct SettingsView: View {
         switch lang {
         case .turkish: return "Diyanet Vakfı"
         case .english: return "Marmaduke Pickthall (1930)"
-        case .german: return "Bubenheim & Elyas"
+        case .german: return "Marmaduke Pickthall (1930, Englisch)"
         case .arabic: return nil
         }
     }

@@ -392,10 +392,10 @@ enum SelfTests {
     // MARK: - İçerik ve ayarlar
 
     private static func contentTests() {
-        check("T25", "Meal baskıları sabit (tr.vakfi / en.pickthall / de.bubenheim / ar yok)",
+        check("T25", "Meal baskıları sabit (tr.vakfi / en.pickthall / de → en.pickthall / ar yok)",
               QuranAPI.mealEdition(for: .turkish) == "tr.vakfi"
               && QuranAPI.mealEdition(for: .english) == "en.pickthall"
-              && QuranAPI.mealEdition(for: .german) == "de.bubenheim"
+              && QuranAPI.mealEdition(for: .german) == "en.pickthall"
               && QuranAPI.mealEdition(for: .arabic) == nil)
 
         check("T26", "App Store ID yokken yorum bağlantısı açılmıyor (Apple penceresi kullanılır)",
