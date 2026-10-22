@@ -13,7 +13,7 @@ struct MoreMenuView: View {
     #endif
 
     private enum Destination: Identifiable {
-        case tracking, imsakiye, diniGunler, duas, esma, mosques, settings
+        case tracking, imsakiye, diniGunler, duas, esma, hadith, mosques, settings
         var id: Self { self }
     }
 
@@ -29,6 +29,7 @@ struct MoreMenuView: View {
                         row(title: loc.t("more_religious_days", fallback: "Dini Günler"), icon: "calendar") { activeSheet = .diniGunler }
                         row(title: loc.t("more_duas", fallback: "Namaz Duaları"), icon: "hands.sparkles.fill") { activeSheet = .duas }
                         row(title: loc.t("esma_title", fallback: "Esmâ-i Hüsnâ"), icon: "sparkles") { activeSheet = .esma }
+                        row(title: loc.t("hadith_title", fallback: "Günün Hadisi"), icon: "text.book.closed.fill") { activeSheet = .hadith }
                         row(title: loc.t("more_mosques", fallback: "Yakındaki Camiler"), icon: "building.columns.fill") { activeSheet = .mosques }
                     }
 
@@ -50,6 +51,7 @@ struct MoreMenuView: View {
             case "imsakiye": activeSheet = .imsakiye
             case "duas": activeSheet = .duas
             case "esma": activeSheet = .esma
+            case "hadith": activeSheet = .hadith
             case "settings": activeSheet = .settings
             case "mosques": activeSheet = .mosques
             case "lockWidgets": showLockWidgetsPreview = true
@@ -73,6 +75,7 @@ struct MoreMenuView: View {
                 case .diniGunler: DiniGunlerView()
                 case .duas: PrayerDuasView()
                 case .esma: EsmaulHusnaView()
+                case .hadith: DailyHadithView()
                 case .mosques: NearbyMosquesView()
                 case .settings: SettingsView()
                 }

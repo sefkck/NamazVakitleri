@@ -9,7 +9,6 @@ import MapKit
 final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     private let manager = CLLocationManager()
-    private let geocoder = CLGeocoder()
 
     @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
     @Published var coordinate: CLLocationCoordinate2D?
@@ -108,37 +107,25 @@ final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelega
         return TimeZone(secondsFromGMT: estimate) ?? device
     }
 
-    /// Şehir adı + gerçek saat dilimi: CLGeocoder 3 kez denenir (0, 5, 20 sn);
-    /// olmazsa MapKit'in ters adres aramasına geçilir.
+    /// Şehir adı + gerçek saat dilimi (MapKit ters adres araması): 3 kez denenir (0, 5, 20 sn).
     private func resolvePlace(_ location: CLLocation, attempt: Int) {
-        geocoder.reverseGeocodeLocation(location) { [weak self] placemarks, _ in
-            DispatchQueue.main.async {
-                guard let self else { return }
-                // Bu arada konum değiştiyse eski cevabı kullanma.
-                guard let c = self.coordinate,
-                      CLLocation(latitude: c.latitude, longitude: c.longitude).distance(from: location) < 1000 else { return }
-                if let placemark = placemarks?.first {
-                    self.cityName = PlaceName.format(placemark) ?? LocalizationManager.shared.t("loc_unknown", fallback: "Bilinmeyen konum")
-                    if let tz = placemark.timeZone { self.timeZone = tz }
-                    return
-                }
-                if attempt < 2 {
-                    let delay: TimeInterval = attempt == 0 ? 5 : 20
-                    DispatchQueue.main.asyncAfter(deadline: .now() + delay) { self.resolvePlace(location, attempt: attempt + 1) }
-                } else {
-                    self.resolveWithMapKit(location)
-                }
+        Task { @MainActor [weak self] in
+            let place = await PlaceName.resolve(location)
+            guard let self else { return }
+            // Bu arada konum değiştiyse eski cevabı kullanma.
+            guard let c = self.coordinate,
+                  CLLocation(latitude: c.latitude, longitude: c.longitude).distance(from: location) < 1000 else { return }
+            if let name = place.name {
+                self.cityName = name
+                if let tz = place.timeZone { self.timeZone = tz }
+                return
             }
-        }
-    }
-
-    private func resolveWithMapKit(_ location: CLLocation) {
-        guard let request = MKReverseGeocodingRequest(location: location) else { return }
-        request.getMapItems { [weak self] items, _ in
-            guard let self, let item = items?.first else { return }
-            if let tz = item.timeZone { self.timeZone = tz }
-            let name = item.addressRepresentations?.cityWithContext ?? item.name
-            if let name, !name.isEmpty { self.cityName = name }
+            if attempt < 2 {
+                let delay: TimeInterval = attempt == 0 ? 5 : 20
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) { self.resolvePlace(location, attempt: attempt + 1) }
+            } else if self.cityName == LocalizationManager.shared.t("loc_waiting", fallback: "Konum bekleniyor...") {
+                self.cityName = LocalizationManager.shared.t("loc_unknown", fallback: "Bilinmeyen konum")
+            }
         }
     }
 

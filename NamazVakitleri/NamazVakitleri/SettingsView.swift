@@ -353,9 +353,7 @@ struct SettingsView: View {
             } header: {
                 Text(loc.t("settings_prayer_notifs", fallback: "Namaz Vakti Bildirimleri"))
             } footer: {
-                Text(loc.t("settings_prayer_notifs_footer2", fallback: "Bildirim almak istediğin vakitleri seç; hepsi aynı zaman tercihini kullanır. Bir sese dokununca seçilir, ▶︎ düğmesi sesi dinletir. Namaz bildirimleri \"Zamana Duyarlı\" gönderilir: Odak ve Rahatsız Etme modundayken de ekrana gelir. Telefon sessiz moddaysa ses çalmaz, sadece titreşir. \"Kıldım\" / \"Birazdan Hatırlat\" düğmeleri için bildirime basılı tut. Deneme düğmesi 5 saniye sonra örnek bir bildirim gönderir."))
-                + Text("\n\n")
-                + Text(loc.t("settings_real_alarm_footer", fallback: "Gerçek alarm, saat uygulamasındaki alarm gibi sessiz modda ve Odak'ta da sesli çalar, kilit ekranında tam ekran görünür. Bu yüzden başta sadece İmsak (sabah uyanmak için) seçilidir; gündüz vakitlerinde alarm toplantıda, derste ya da camide de çalar. Seçtiğin vakitlerin önümüzdeki 3 günü kurulur; \"Ertele\" 10 dakika sonra tekrar çaldırır. Alarm çalan vakitlerin bildirimi sessiz gelir; \"Kıldım\" düğmesi bildirimde kalır."))
+                Text(loc.t("settings_prayer_notifs_footer2", fallback: "Bildirim almak istediğin vakitleri seç; hepsi aynı zaman tercihini kullanır. Bir sese dokununca seçilir, ▶︎ düğmesi sesi dinletir. Namaz bildirimleri \"Zamana Duyarlı\" gönderilir: Odak ve Rahatsız Etme modundayken de ekrana gelir. Telefon sessiz moddaysa ses çalmaz, sadece titreşir. \"Kıldım\" / \"Birazdan Hatırlat\" düğmeleri için bildirime basılı tut. Deneme düğmesi 5 saniye sonra örnek bir bildirim gönderir.") + "\n\n" + loc.t("settings_real_alarm_footer", fallback: "Gerçek alarm, saat uygulamasındaki alarm gibi sessiz modda ve Odak'ta da sesli çalar, kilit ekranında tam ekran görünür. Bu yüzden başta sadece İmsak (sabah uyanmak için) seçilidir; gündüz vakitlerinde alarm toplantıda, derste ya da camide de çalar. Seçtiğin vakitlerin önümüzdeki 3 günü kurulur; \"Ertele\" 10 dakika sonra tekrar çaldırır. Alarm çalan vakitlerin bildirimi sessiz gelir; \"Kıldım\" düğmesi bildirimde kalır."))
             }
 
             Section {
@@ -653,6 +651,7 @@ struct SettingsView: View {
                 if let meal = Self.mealSourceName(loc.language) {
                     sourceRow(loc.t("sources_meal", fallback: "Türkçe meal"), "\(meal) · alquran.cloud")
                 }
+                sourceRow(loc.t("sources_hadith", fallback: "Hadis"), loc.t("sources_hadith_value", fallback: "İmam Nevevî, Kırk Hadis · hadith-api (açık kaynak)"))
                 sourceRow(loc.t("sources_audio", fallback: "Hafız sesi"), "\(RecitationPlayer.localizedReciterName) · Islamic Network (alquran.cloud)")
                 sourceRow(loc.t("sources_times", fallback: "Namaz vakitleri"),
                           PrayerCalculation.selectedMethod == .diyanet

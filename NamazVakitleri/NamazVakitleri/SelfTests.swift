@@ -419,7 +419,7 @@ enum SelfTests {
                        "recitation_error", "recitation_error_title", "recitation_from_ayah", "recitation_reciter",
                        "recitation_now", "recitation_pause", "sources_title", "sources_note",
                        "zikir_reset_confirm_title", "zikir_reset_confirm_body", "zikir_mode_tesbihat",
-                       "tesbih_subhanallah", "tesbih_elhamdulillah", "tesbih_allahuekber", "tesbih_step", "privacy_read_web", "lock_widget_name", "lock_widget_desc", "kerahat_now_title", "kerahat_israk", "kerahat_istiva", "kerahat_isfirar", "settings_kerahat", "settings_kerahat_footer", "siri_no_location", "siri_no_times", "siri_next_answer", "siri_remaining_hm", "siri_remaining_m", "siri_kerahat_now", "siri_kerahat_next", "siri_kerahat_none", "qibla_kaaba", "qibla_you", "qibla_map_info", "qibla_map_hint", "qibla_map_near", "qibla_map_whole", "qibla_map_title", "qibla_map_button", "home_alarm_toast_on", "home_alarm_toast_off", "imsakiye_ramadan_year", "settings_kerahat_page", "kerahat_today", "common_on", "common_off", "qibla_map_north", "qibla_map_hint_north", "prayer_sabah", "prayer_vitir", "qibla_map_info2", "watch_open_phone", "settings_adjust_footer_other", "tracking_marked", "tracking_unmarked", "common_undo", "settings_current_place", "quran_offline", "esma_title", "esma_today", "esma_search", "live_toggle", "settings_real_alarm", "settings_real_alarm_denied", "settings_real_alarm_footer", "alarm_snooze", "widget_esma_name", "alarm_snooze_real", "recitation_open_hint", "about_disclaimer", "backup_title", "backup_export", "backup_import", "backup_file_name", "backup_footer", "backup_confirm_title", "backup_confirm_msg", "backup_restore", "backup_done", "backup_invalid", "widget_esma_desc", "settings_alarm_for", "settings_alarm_skip_friday", "live_footer", "live_disabled", "live_iftar_left", "live_sahur_left", "live_iftar_now", "live_sahur_now", "tracking_excused", "tracking_fast_days", "tracking_fast_title", "tracking_fast_footer", "siri_prayer_today", "siri_prayer_passed", "siri_today_list", "home_time_left", "settings_adjust_footer_abroad", "duas_jump", "watch_qibla_hint", "audio_download", "audio_downloaded", "audio_downloading", "audio_delete_title", "audio_delete", "audio_delete_body", "audio_download_error", "audio_download_error_title", "audio_storage_title", "audio_storage_size", "audio_delete_all", "method_title", "method_diyanet", "method_isna", "method_mwl", "method_ummAlQura", "method_footer"]
+                       "tesbih_subhanallah", "tesbih_elhamdulillah", "tesbih_allahuekber", "tesbih_step", "privacy_read_web", "lock_widget_name", "lock_widget_desc", "kerahat_now_title", "kerahat_israk", "kerahat_istiva", "kerahat_isfirar", "settings_kerahat", "settings_kerahat_footer", "siri_no_location", "siri_no_times", "siri_next_answer", "siri_remaining_hm", "siri_remaining_m", "siri_kerahat_now", "siri_kerahat_next", "siri_kerahat_none", "qibla_kaaba", "qibla_you", "qibla_map_info", "qibla_map_hint", "qibla_map_near", "qibla_map_whole", "qibla_map_title", "qibla_map_button", "home_alarm_toast_on", "home_alarm_toast_off", "imsakiye_ramadan_year", "settings_kerahat_page", "kerahat_today", "common_on", "common_off", "qibla_map_north", "qibla_map_hint_north", "prayer_sabah", "prayer_vitir", "qibla_map_info2", "watch_open_phone", "settings_adjust_footer_other", "tracking_marked", "tracking_unmarked", "common_undo", "settings_current_place", "quran_offline", "esma_title", "esma_today", "esma_search", "live_toggle", "settings_real_alarm", "settings_real_alarm_denied", "settings_real_alarm_footer", "alarm_snooze", "widget_esma_name", "alarm_snooze_real", "recitation_open_hint", "about_disclaimer", "hadith_title", "hadith_today", "hadith_all", "hadith_number", "hadith_source", "hadith_footer", "sources_hadith", "sources_hadith_value", "backup_title", "backup_export", "backup_import", "backup_file_name", "backup_footer", "backup_confirm_title", "backup_confirm_msg", "backup_restore", "backup_done", "backup_invalid", "widget_esma_desc", "settings_alarm_for", "settings_alarm_skip_friday", "live_footer", "live_disabled", "live_iftar_left", "live_sahur_left", "live_iftar_now", "live_sahur_now", "tracking_excused", "tracking_fast_days", "tracking_fast_title", "tracking_fast_footer", "siri_prayer_today", "siri_prayer_passed", "siri_today_list", "home_time_left", "settings_adjust_footer_abroad", "duas_jump", "watch_qibla_hint", "audio_download", "audio_downloaded", "audio_downloading", "audio_delete_title", "audio_delete", "audio_delete_body", "audio_download_error", "audio_download_error_title", "audio_storage_title", "audio_storage_size", "audio_delete_all", "method_title", "method_diyanet", "method_isna", "method_mwl", "method_ummAlQura", "method_footer"]
         let missing = newKeys.filter { key in
             guard let e = LocalizationStrings.table[key] else { return true }
             return e[.english] == nil || e[.arabic] == nil || e[.german] == nil
@@ -913,6 +913,34 @@ enum SelfTests {
         do {
             let modes = Bundle.main.object(forInfoDictionaryKey: "UIBackgroundModes") as? [String] ?? []
             check("T89", "Arka planda Kur'an sesi izni var (audio + fetch)", modes.contains("audio") && modes.contains("fetch"), "\(modes)")
+        }
+
+        // T90: Yer adı (MapKit, iOS 26) — 22.10.2026'da ölçülen gerçek cevaplarla: TR "İl İlçe", yurt dışı "Semt, Bölge".
+        do {
+            let fatih = PlaceName.format(region: "TR", cityName: "Fatih", cityWithContext: "Fatih İstanbul")
+            let kepez = PlaceName.format(region: "TR", cityName: "Kepez", cityWithContext: "Kepez Antalya")
+            let lakemba = PlaceName.format(region: "AU", cityName: "Lakemba", cityWithContext: "Lakemba NSW")
+            let brooklyn = PlaceName.format(region: "US", cityName: "Brooklyn", cityWithContext: "")
+            let stockholm = PlaceName.format(region: "SE", cityName: "Stockholm", cityWithContext: "Stockholm")
+            let none = PlaceName.format(region: nil, cityName: nil, cityWithContext: nil)
+            check("T90", "Yer adı (yeni MapKit): İstanbul Fatih, Antalya Kepez, Lakemba, NSW, Brooklyn, Stockholm",
+                  fatih == "İstanbul Fatih" && kepez == "Antalya Kepez" && lakemba == "Lakemba, NSW"
+                  && brooklyn == "Brooklyn" && stockholm == "Stockholm" && none == nil,
+                  "\(fatih ?? "-") | \(kepez ?? "-") | \(lakemba ?? "-")")
+        }
+
+        // T91: Günün hadisi: 42 hadis (1..42 sıralı), Arapça + Türkçe + İngilizce dolu; dil seçimi doğru; her gün değişir.
+        do {
+            let all = DailyHadith.all
+            let numbered = all.map(\.n) == Array(1...42)
+            let filled = all.allSatisfy { !$0.ar.isEmpty && !$0.tr.isEmpty && !$0.en.isEmpty }
+            let first = all.first
+            let langs = first?.translation(in: .turkish) == first?.tr && first?.translation(in: .german) == first?.en
+                && first?.translation(in: .arabic) == nil
+            let d1 = DailyHadith.ofDay(Date(timeIntervalSince1970: 1_790_000_000))?.n
+            let d2 = DailyHadith.ofDay(Date(timeIntervalSince1970: 1_790_086_400))?.n
+            check("T91", "Günün hadisi: 42 hadis, üç dil dolu, telefon diline göre çeviri, her gün değişir",
+                  all.count == 42 && numbered && filled && langs && d1 != d2, "adet=\(all.count)")
         }
 
         // T35: Çift Besmele kaldırılıyor (Fâtiha ve Tevbe hariç).

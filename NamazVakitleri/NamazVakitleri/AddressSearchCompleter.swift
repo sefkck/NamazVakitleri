@@ -43,12 +43,7 @@ final class AddressSearchCompleter: NSObject, ObservableObject, MKLocalSearchCom
             let itemTimeZone = item.timeZone
 
             // Gizlilik için tam adres yerine sadece ilçe + il gösterilir.
-            let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
-            CLGeocoder().reverseGeocodeLocation(location) { placemarks, _ in
-                let placemark = placemarks?.first
-                let name = placemark.flatMap(PlaceName.format) ?? completion.title
-                onResult(coordinate, name, placemark?.timeZone ?? itemTimeZone)
-            }
+            onResult(coordinate, PlaceName.format(item) ?? completion.title, itemTimeZone)
         }
     }
 }
