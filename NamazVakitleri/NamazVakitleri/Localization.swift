@@ -190,7 +190,7 @@ enum LocalizationStrings {
             .arabic: "أذكّرك بمواقيت الصلاة حسب موقعك، وأساعدك في العثور على اتجاه القبلة، وأسهّل عليك عد الذكر وقراءة القرآن. أنا هنا لدعمك بتذكيرات لطيفة في الوقت المناسب.",
             .german: "Ich erinnere dich an die Gebetszeiten basierend auf deinem Standort, helfe dir die Qibla zu finden und erleichtere dir das Dhikr-Zählen und Koranlesen. Ich bin hier, um dich mit sanften Erinnerungen zu unterstützen."
         ],
-        "splash_subtitle": [.turkish: "Kur'an, Namaz, Kıble", .english: "Quran, Prayer, Qibla", .arabic: "القرآن، الصلاة، القبلة", .german: "Koran, Gebet, Qibla"],
+        "splash_subtitle": [.turkish: "Namaz Vakitleri", .english: "Prayer Times", .arabic: "مواقيت الصلاة", .german: "Gebetszeiten"],
 
         // MARK: - Namaz vakti adları (Türkçe değerler x() ile ters arama için şart)
         "prayer_fajr": [.turkish: "İmsak", .english: "Fajr", .arabic: "الفجر", .german: "Fajr"],
@@ -382,7 +382,7 @@ enum LocalizationStrings {
         "settings_privacy": [.english: "Privacy Policy", .arabic: "سياسة الخصوصية", .german: "Datenschutzerklärung"],
         "settings_ad": [.english: "Advertisement", .arabic: "إعلان", .german: "Werbung"],
         "settings_version": [.english: "Version", .arabic: "الإصدار", .german: "Version"],
-        "settings_about_text": [.english: "Safa brings daily prayer times, the Qibla direction, the Holy Quran and more together in one place.", .arabic: "يجمع صفا مواقيت الصلاة اليومية واتجاه القبلة والقرآن الكريم وغيرها في مكان واحد.", .german: "Safa vereint tägliche Gebetszeiten, die Qibla-Richtung, den Heiligen Koran und mehr an einem Ort."],
+        "settings_about_text": [.english: "Safa Prayer Times brings daily prayer times, the Qibla direction, the Holy Quran and more together in one place.", .arabic: "يجمع تطبيق صفا مواقيت الصلاة أوقات الصلاة اليومية واتجاه القبلة والقرآن الكريم وغيرها في مكان واحد.", .german: "Safa Gebetszeiten vereint tägliche Gebetszeiten, die Qibla-Richtung, den Heiligen Koran und mehr an einem Ort."],
         "sound_notif": [.turkish: "Bildirim Sesi", .english: "Notification Sound", .arabic: "صوت الإشعار", .german: "Benachrichtigungston"],
         "sound_adhan": [.turkish: "Ezan Sesi", .english: "Adhan Sound", .arabic: "صوت الأذان", .german: "Adhan-Ton"],
 
@@ -613,13 +613,14 @@ enum LocalizationStrings {
         "backup_title": [.english: "Backup", .arabic: "النسخ الاحتياطي", .german: "Sicherung"],
         "backup_export": [.english: "Back up records to a file", .arabic: "نسخ السجلات إلى ملف", .german: "Einträge in Datei sichern"],
         "backup_import": [.english: "Restore from backup", .arabic: "استعادة من نسخة احتياطية", .german: "Aus Sicherung wiederherstellen"],
-        "backup_file_name": [.english: "Safa backup", .arabic: "نسخة Safa الاحتياطية", .german: "Safa-Sicherung"],
+        "backup_file_name": [.english: "Safa Prayer Times backup", .arabic: "نسخة صفا مواقيت الصلاة الاحتياطية", .german: "Safa-Gebetszeiten-Sicherung"],
         "backup_footer": [.english: "Prayer records, excused days, missed prayers and fasts, and dhikr counts are written to one file. Save it to Files, iCloud Drive or send it to yourself; on a new phone, restore it here. The file goes only where you choose.", .arabic: "تُكتب سجلات الصلاة وأيام العذر والقضاء وأعداد الذكر في ملف واحد. احفظه في «الملفات» أو iCloud Drive أو أرسله لنفسك، ثم استعده هنا على الهاتف الجديد. لا يذهب الملف إلا إلى حيث تختار.", .german: "Gebetseinträge, befreite Tage, nachzuholende Gebete und Fasten sowie Dhikr-Zähler werden in eine Datei geschrieben. Speichere sie in „Dateien“, iCloud Drive oder schicke sie dir selbst; auf einem neuen Telefon stellst du sie hier wieder her. Die Datei geht nur dorthin, wo du sie ablegst."],
         "backup_confirm_title": [.english: "Restore the backup?", .arabic: "استعادة النسخة الاحتياطية؟", .german: "Sicherung wiederherstellen?"],
         "backup_confirm_msg": [.english: "Found %d days of prayer records and %d missed prayers/fasts. They will replace the records on this phone.", .arabic: "تم العثور على سجلات صلاة لـ %d يومًا و%d من القضاء. ستحل محل السجلات على هذا الهاتف.", .german: "%d Tage mit Gebetseinträgen und %d Nachholgebete/-fasten gefunden. Sie ersetzen die Einträge auf diesem Telefon."],
         "backup_restore": [.english: "Restore", .arabic: "استعادة", .german: "Wiederherstellen"],
         "backup_done": [.english: "Backup restored.", .arabic: "تمت استعادة النسخة الاحتياطية.", .german: "Sicherung wiederhergestellt."],
-        "backup_invalid": [.english: "This file is not a Safa backup.", .arabic: "هذا الملف ليس نسخة احتياطية من Safa.", .german: "Diese Datei ist keine Safa-Sicherung."],
+        "backup_invalid": [.english: "This file is not a Safa Prayer Times backup.", .arabic: "هذا الملف ليس نسخة احتياطية من صفا مواقيت الصلاة.", .german: "Diese Datei ist keine Sicherung von Safa Gebetszeiten."],
+        "about_disclaimer": [.english: "Safa Prayer Times is not an official app of the Presidency of Religious Affairs of Türkiye (Diyanet) or the Türkiye Diyanet Foundation and is not affiliated with them. Prayer times are calculated on your phone with Diyanet's calculation method.", .arabic: "تطبيق صفا مواقيت الصلاة ليس تطبيقًا رسميًا لرئاسة الشؤون الدينية التركية (ديانت) أو لوقف ديانت التركي، ولا يرتبط بهما. تُحسب مواقيت الصلاة على هاتفك بطريقة حساب ديانت.", .german: "Safa Gebetszeiten ist keine offizielle App des türkischen Präsidiums für Religionsangelegenheiten (Diyanet) oder der Türkiye-Diyanet-Stiftung und steht in keiner Verbindung zu ihnen. Die Gebetszeiten werden auf deinem Telefon mit der Berechnungsmethode von Diyanet berechnet."],
         "common_clear": [.english: "Clear", .arabic: "مسح", .german: "Löschen"],
         "mosque_err_search": [.english: "Couldn't search for mosques. Check your internet connection and try again.", .arabic: "تعذّر البحث عن المساجد. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.", .german: "Moscheesuche fehlgeschlagen. Prüfe deine Internetverbindung und versuche es erneut."]
     ]

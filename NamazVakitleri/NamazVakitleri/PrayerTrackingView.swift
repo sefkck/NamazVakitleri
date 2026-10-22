@@ -58,7 +58,7 @@ struct PrayerTrackingView: View {
                 if let data = try? Data(contentsOf: url), let p = try? TrackingBackup.decode(data) {
                     pendingRestore = p
                 } else {
-                    backupMessage = loc.t("backup_invalid", fallback: "Bu dosya bir Safa yedeği değil.")
+                    backupMessage = loc.t("backup_invalid", fallback: "Bu dosya bir Safa Namaz Vakitleri yedeği değil.")
                 }
             }
             .alert(loc.t("backup_confirm_title", fallback: "Yedek geri yüklensin mi?"),
@@ -87,7 +87,7 @@ struct PrayerTrackingView: View {
 
     private var backupSection: some View {
         Section {
-            ShareLink(item: TrackingBackupFile(), preview: SharePreview(loc.t("backup_file_name", fallback: "Safa yedeği"))) {
+            ShareLink(item: TrackingBackupFile(), preview: SharePreview(loc.t("backup_file_name", fallback: "Safa Namaz Vakitleri yedeği"))) {
                 Label(loc.t("backup_export", fallback: "Kayıtları dosyaya yedekle"), systemImage: "square.and.arrow.up")
             }
             Button { importing = true } label: {

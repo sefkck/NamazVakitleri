@@ -615,7 +615,7 @@ struct SettingsView: View {
 
     private var aboutView: some View {
         List {
-            Text(loc.t("settings_about_text", fallback: "Namaz Vakitleri, günlük namaz vakitlerini, kıble yönünü, Kur'an-ı Kerim'i ve daha fazlasını tek bir yerde sunan bir uygulamadır."))
+            Text(loc.t("settings_about_text", fallback: "Safa Namaz Vakitleri, günlük namaz vakitlerini, kıble yönünü, Kur'an-ı Kerim'i ve daha fazlasını tek bir yerde sunan bir uygulamadır."))
             HStack {
                 Text(loc.t("settings_version", fallback: "Sürüm"))
                 Spacer()
@@ -646,6 +646,9 @@ struct SettingsView: View {
                             ? loc.t("sources_times_value", fallback: "Adhan kütüphanesi, Türkiye (Diyanet) hesaplama yöntemi")
                             : "Adhan · " + loc.t(PrayerCalculation.selectedMethod.titleKey, fallback: PrayerCalculation.selectedMethod.turkishTitle))
                 Text(loc.t("sources_note", fallback: "Hafız kayıtlarının hakları okuyucuya aittir. Ses ücretsiz sunulur."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Text(loc.t("about_disclaimer", fallback: "Safa Namaz Vakitleri, Diyanet İşleri Başkanlığı'nın ya da Türkiye Diyanet Vakfı'nın resmi uygulaması değildir ve bu kurumlarla bir bağı yoktur. Vakitler, Diyanet'in hesaplama yöntemiyle telefonunda hesaplanır."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
