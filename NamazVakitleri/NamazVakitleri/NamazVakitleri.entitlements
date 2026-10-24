@@ -6,7 +6,7 @@
 	<true/>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.com.kocaksefa.namazvakitleri</string>
+		<string>group.com.kocaksefa.safa</string>
 	</array>
 </dict>
 </plist>

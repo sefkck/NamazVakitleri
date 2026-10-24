@@ -416,7 +416,7 @@ final class NotificationManager: NSObject, ObservableObject, UNUserNotificationC
     /// bildirim planlamaktır.
     func scheduleTestPrayerAlarm() {
         let content = UNMutableNotificationContent()
-        content.title = LocalizationManager.shared.t("notif_test_title", fallback: "Test: Namaz Vakti")
+        content.title = LocalizationManager.shared.t("notif_test_title", fallback: "Örnek: Namaz Vakti")
         content.body = LocalizationManager.shared.t("notif_test_body", fallback: "Bu bir deneme bildirimidir - gerçek namaz vakitlerinde de böyle görünecek.")
         content.sound = selectedSound()
         content.categoryIdentifier = Self.prayerCategoryID

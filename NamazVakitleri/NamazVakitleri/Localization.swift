@@ -54,7 +54,7 @@ enum AppLanguage: String, CaseIterable, Identifiable {
 final class LocalizationManager: ObservableObject {
     static let shared = LocalizationManager()
 
-    static let appGroupID = "group.com.kocaksefa.namazvakitleri"
+    static let appGroupID = "group.com.kocaksefa.safa"
 
     /// Sağdan sola ↔ soldan sağa geçişte bütün ekran yeniden kurulur ve açık
     /// Ayarlar penceresi kapanırdı. Bu bayrak, yeniden kurulumdan sonra Ayarlar'ı
@@ -367,7 +367,6 @@ enum LocalizationStrings {
         "settings_3min": [.english: "3 Minutes Before", .arabic: "قبل 3 دقائق", .german: "3 Minuten vorher"],
         "settings_try_alarm": [.english: "Try the Alarm Now", .arabic: "جرّب التنبيه الآن", .german: "Alarm jetzt testen"],
         "settings_prayer_notifs": [.english: "Prayer Time Notifications", .arabic: "إشعارات مواقيت الصلاة", .german: "Gebetszeit-Benachrichtigungen"],
-        "settings_prayer_notifs_footer": [.english: "Choose the prayer times you want to be notified for; they all share the same timing preference. Tapping the Notification Sound / Adhan Sound row selects it and plays a preview. For the \"I Prayed\" / \"Remind Me Later\" buttons to show, set iPhone Settings > Notifications > this app > Notification Style to \"Alerts\". The sounds need alarm_1.caf and alarm_2.caf to be added to the project. The test button sends a test notification in 5 seconds.", .arabic: "اختر مواقيت الصلاة التي تريد الإشعار بها، وجميعها تستخدم نفس تفضيل التوقيت. الضغط على صف صوت الإشعار / صوت الأذان يحدده ويشغّل معاينة. لكي تظهر أزرار «صلّيت» / «ذكّرني لاحقًا»، اضبط: إعدادات iPhone > الإشعارات > هذا التطبيق > نمط الإشعار على «تنبيهات». تحتاج الأصوات إلى إضافة alarm_1.caf و alarm_2.caf إلى المشروع. زر الاختبار يرسل إشعارًا تجريبيًا بعد 5 ثوانٍ.", .german: "Wähle die Gebetszeiten, für die du benachrichtigt werden möchtest; alle verwenden dieselbe Zeiteinstellung. Ein Tipp auf die Zeile Benachrichtigungston / Adhan-Ton wählt ihn aus und spielt eine Vorschau ab. Damit die Buttons „Gebetet“ / „Später erinnern“ erscheinen, stelle in den iPhone-Einstellungen > Mitteilungen > diese App > Mitteilungsstil auf „Hinweise“. Für die Töne müssen alarm_1.caf und alarm_2.caf zum Projekt hinzugefügt werden. Der Testbutton sendet in 5 Sekunden eine Testbenachrichtigung."],
         "settings_reminders": [.english: "Reminders", .arabic: "التذكيرات", .german: "Erinnerungen"],
         "settings_reminders_footer": [.english: "A gentle reminder notification is sent at random times during the day.", .arabic: "يُرسل إشعار تذكير لطيف في أوقات عشوائية خلال اليوم.", .german: "Zu zufälligen Zeiten am Tag wird eine sanfte Erinnerung gesendet."],
         "settings_zikir_reminder": [.english: "Dhikr Reminder", .arabic: "تذكير الذكر", .german: "Dhikr-Erinnerung"],
@@ -393,7 +392,7 @@ enum LocalizationStrings {
         "notif_before_body": [.english: "You can start getting ready.", .arabic: "يمكنك البدء بالاستعداد.", .german: "Du kannst dich langsam bereit machen."],
         "notif_now_title": [.english: "%@ Time Has Started", .arabic: "حان وقت %@", .german: "%@-Zeit hat begonnen"],
         "notif_now_body": [.english: "Don't forget to pray %@.", .arabic: "لا تنسَ أداء صلاة %@.", .german: "Vergiss nicht, das %@-Gebet zu verrichten."],
-        "notif_test_title": [.english: "Test: Prayer Time", .arabic: "تجربة: وقت الصلاة", .german: "Test: Gebetszeit"],
+        "notif_test_title": [.english: "Sample: Prayer Time", .arabic: "مثال: وقت الصلاة", .german: "Beispiel: Gebetszeit"],
         "notif_test_body": [.english: "This is a test notification - real prayer times will look like this too.", .arabic: "هذا إشعار تجريبي - ستظهر مواقيت الصلاة الحقيقية بالشكل نفسه.", .german: "Dies ist eine Testbenachrichtigung – so sehen auch echte Gebetszeiten aus."],
         "notif_snooze_body": [.english: "Reminder - don't forget to pray.", .arabic: "تذكير - لا تنسَ أداء الصلاة.", .german: "Erinnerung – vergiss nicht zu beten."],
         "friday_eve_title": [.english: "Tomorrow Is Friday", .arabic: "غدًا الجمعة", .german: "Morgen ist Freitag"],

@@ -49,8 +49,19 @@ final class AdConsentManager: ObservableObject {
         guard ConsentInformation.shared.canRequestAds else { return }
         if !adsStarted {
             adsStarted = true
+            Self.applyAdPolicy()
             MobileAds.shared.start(completionHandler: nil)
         }
         canRequestAds = true
+    }
+
+    /// Dini uygulama: sadece genel izleyiciye uygun (G) reklamlar ve
+    /// kişiselleştirilmemiş reklam (kullanıcıdan reklam için kişisel veri
+    /// toplanmaz). Kategori engelleri (alkol, kumar, flört vb.) ayrıca AdMob
+    /// hesabında "Engelleme kontrolleri"nden yapılır.
+    static func applyAdPolicy() {
+        let config = MobileAds.shared.requestConfiguration
+        config.maxAdContentRating = .general
+        config.publisherPrivacyPersonalizationState = .disabled
     }
 }

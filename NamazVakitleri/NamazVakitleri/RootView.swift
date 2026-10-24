@@ -11,7 +11,6 @@ struct RootView: View {
     @ObservedObject private var loc = LocalizationManager.shared
     @StateObject private var onboardingLocationRequester = OnboardingLocationRequester()
     @Environment(\.requestReview) private var requestReview
-    @State private var showNotificationPrimer = false
 
     init() {
         // Kullanıcı Ayarlar'dan hiç manuel seçim yapmadıysa (ilk kurulum),
@@ -88,7 +87,7 @@ struct RootView: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 8) {
                     notificationManager.activeAlarmPrayer = ("Öğle", PrayerTracker.dayKey(Date(), timeZone: .current))
                     notificationManager.activeAlarmBody = "Test"
-                    notificationManager.activeAlarmTitle = "Test: Namaz Vakti"
+                    notificationManager.activeAlarmTitle = "Örnek: Namaz Vakti"
                 }
             }
             #endif
@@ -106,24 +105,13 @@ struct RootView: View {
         .onChange(of: isDarkTheme) { _, newValue in
             PrayerWidgetData.saveDarkTheme(newValue)
         }
-        .alert(loc.t("primer_title", fallback: "Ezan vakitlerinde haber verelim mi?"), isPresented: $showNotificationPrimer) {
-            Button(loc.t("primer_yes", fallback: "Evet, haber ver")) {
-                requestNotificationPermission()
-            }
-            Button(loc.t("primer_later", fallback: "Şimdi değil"), role: .cancel) {
-                PermissionPrimer.markDeclined()
-            }
-        } message: {
-            Text(loc.t("primer_body", fallback: "Namaz vakti girince telefonun seni uyarsın. Bir sonraki ekranda \"İzin Ver\"e dokunman yeterli. Bu ayarı sonra Ayarlar > Bildirimler'den değiştirebilirsin."))
-        }
     }
 
     /// İzin sıralaması:
     /// 1) Konum izni ana ekran açılınca istenir (HomeView ve burası aynı
     ///    sistem penceresini tetikler, çift pencere çıkmaz).
-    /// 2) Kullanıcı konum konusunda karar verince kısa bir açıklama
-    ///    ("Ezan vakitlerinde haber verelim mi?") gösterilir.
-    /// 3) "Evet" denirse sistemin bildirim izni penceresi açılır.
+    /// 2) Kullanıcı konum konusunda karar verince sistemin bildirim izni
+    ///    penceresi açılır (tek pencere; ara soru yok).
     /// Bildirim izni daha önce sorulmuşsa beklemeden hazırlık yapılır.
     private func startPermissionFlow() {
         #if DEBUG
@@ -142,10 +130,12 @@ struct RootView: View {
                 // İlk kurulumda reklam izni formu, konum izni penceresiyle
                 // üst üste binmesin diye konum kararından sonra gelir.
                 AdConsentManager.shared.gatherConsent()
-                // Konum penceresi tamamen kapansın, sonra açıklamayı göster.
-                guard PermissionPrimer.shouldShow() else { return }
+                // Konum penceresi tamamen kapansın, sonra doğrudan iOS'un bildirim
+                // izni penceresi açılsın. Eskiden önce kendi sorumuz ("Ezan
+                // vakitlerinde haber verelim mi?") çıkıyordu; kullanıcı bunu
+                // "iki kez üst üste izin istedi" olarak gördü (24.10.2026).
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                    showNotificationPrimer = true
+                    requestNotificationPermission()
                 }
             }
         }

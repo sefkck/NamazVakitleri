@@ -19,7 +19,7 @@ enum ReviewManager {
     /// TODO: Uygulama App Store'a yüklendiğinde gerçek App Store ID'sini
     /// yaz (yalnızca rakamlar, ör. "6501234567"). Boşken Ayarlar'daki
     /// "Bizi Değerlendir" Apple'ın penceresini kullanır.
-    static let appStoreID = ""
+    static let appStoreID = "6826514775"
 
     /// Uygulama her açıldığında çağrılır. Değerlendirme isteğinin şimdi
     /// gösterilip gösterilmeyeceğini döner.

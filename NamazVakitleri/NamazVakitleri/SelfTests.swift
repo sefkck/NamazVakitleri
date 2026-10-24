@@ -4,6 +4,7 @@ import CoreLocation
 import MapKit
 import UserNotifications
 import Adhan
+import GoogleMobileAds
 
 /// Otomatik regresyon testleri (sadece DEBUG derlemede).
 /// Çalıştırma: uygulamayı `-selfTest` argümanıyla başlat. Sonuçlar konsola
@@ -949,6 +950,27 @@ enum SelfTests {
             let caption = "Sıradaki Namaz".uppercased(with: Locale(identifier: "tr_TR"))
             check("T92", "Widget başlıkları Türkçe büyük harfle doğru (SURESİ, SIRADAKİ NAMAZ)",
                   tr == "BAKARA SURESİ" && caption == "SIRADAKİ NAMAZ" && AppLanguage.turkish.locale.identifier.hasPrefix("tr"))
+        }
+
+        // T93: Reklam politikası: sadece genel izleyici (G), kişiselleştirilmemiş reklam.
+        do {
+            AdConsentManager.applyAdPolicy()
+            let c = MobileAds.shared.requestConfiguration
+            check("T93", "Reklamlar sadece genel izleyiciye uygun (G) ve kişiselleştirilmemiş",
+                  c.maxAdContentRating == .general && c.publisherPrivacyPersonalizationState == .disabled)
+        }
+
+        // T94: "Bizi Değerlendir" App Store kaydına (6826514775) gider.
+        check("T94", "Bizi Değerlendir bağlantısı App Store numarasıyla dolu",
+              ReviewManager.writeReviewURL?.absoluteString == "https://apps.apple.com/app/id6826514775?action=write-review")
+
+        // T95: Kullanıcının gördüğü deneme alarmında "Test" yazmıyor; geliştirici notu kalmadı.
+        do {
+            let titles = [AppLanguage.english, .german, .arabic].map { LocalizationManager.translate("notif_test_title", language: $0, fallback: nil) }
+            let noTest = titles.allSatisfy { !$0.contains("Test") && !$0.contains("تجربة") }
+            let oldFooterGone = LocalizationStrings.table["settings_prayer_notifs_footer"] == nil
+            check("T95", "Deneme alarmı başlığı 'Örnek' (4 dil, 'Test' yok); eski geliştirici notu silindi",
+                  noTest && titles[0] == "Sample: Prayer Time" && oldFooterGone)
         }
 
         // T35: Çift Besmele kaldırılıyor (Fâtiha ve Tevbe hariç).

@@ -123,7 +123,7 @@ enum PrayerAlarms {
     /// Ayarlar'daki deneme düğmesi: 5 sn sonra gerçek alarm.
     static func scheduleTest() {
         let L = LocalizationManager.shared
-        let title = L.t("notif_test_title", fallback: "Test: Namaz Vakti")
+        let title = L.t("notif_test_title", fallback: "Örnek: Namaz Vakti")
         let snooze = L.t("alarm_snooze_real", fallback: "Ertele")
         let sound = NotificationManager.shared.selectedSoundFileName
         Task { await schedule(title: title, prayerName: "", date: Date().addingTimeInterval(5), snoozeText: snooze, sound: sound) }

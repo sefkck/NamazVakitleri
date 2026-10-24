@@ -11,14 +11,14 @@ import WidgetKit
 /// KURULUM (Xcode'da, kod dışında yapman gereken tek seferlik adım):
 /// 1. Ana uygulama hedefi (NamazVakitleri) seçili, Signing & Capabilities
 ///    sekmesinde "+ Capability" > "App Groups" ekle.
-/// 2. Yeni bir grup oluştur, adı tam olarak: group.com.kocaksefa.namazvakitleri
+/// 2. Yeni bir grup oluştur, adı tam olarak: group.com.kocaksefa.safa
 ///    (istersen farklı bir isim seç ama aşağıdaki `suiteName` ile
 ///    BİREBİR aynı olmalı).
 /// 3. Widget Extension hedefini de oluşturduktan sonra (aşağıdaki not),
 ///    onun Signing & Capabilities'ine de AYNI App Group'u ekle - iki
 ///    hedefin de işaretli olması şart, yoksa veri paylaşılmaz.
 enum PrayerWidgetData {
-    static let appGroupID = "group.com.kocaksefa.namazvakitleri"
+    static let appGroupID = "group.com.kocaksefa.safa"
 
     /// Widget kendi başına vakit hesaplayamadığı (Adhan kütüphanesi
     /// widget'a bağlı değil) için uygulama bu kadar gün ileriyi kaydeder.
